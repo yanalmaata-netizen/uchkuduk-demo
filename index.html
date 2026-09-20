@@ -1,0 +1,1621 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Демонстрация системы автоматизации продаж рыбы и пива для сети Уч Кудук">
+<style>
+  :root{ color-scheme: light dark; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  html,body{ margin:0; }
+  img{ max-width:100%; }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+<title>Балык Контур</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@500;600;700&family=Commissioner:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root{
+    --bg:#F2EFEC; --surface:#FFFFFF; --sunk:#F8F5F2; --ink:#1E1512; --muted:#6E6058;
+    --line:#E0D8D2; --line-soft:#EDE7E2;
+    --teal:#A8412A; --teal-soft:#F6E5DF; --teal-ink:#FFFFFF;
+    --copper:#8C3B12; --copper-soft:#F8E6D9;
+    --good:#25714E; --good-soft:#DDEFE5; --warn:#8A6410; --warn-soft:#F7EEDA;
+    --nav-bg:#231210; --nav-ink:#E6D4CD; --nav-ink-dim:#A98D83; --nav-active:#3D1E18; --nav-line:#3A1C16;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#140D0B; --surface:#1F1512; --sunk:#180F0D; --ink:#EFE6E1; --muted:#A99B93;
+      --line:#382622; --line-soft:#2A1C19;
+      --teal:#E08A6B; --teal-soft:#2E1A14; --teal-ink:#1E0D08;
+      --copper:#EDA07A; --copper-soft:#33190F;
+      --good:#63C79A; --good-soft:#12291F; --warn:#D3A84A; --warn-soft:#2A2517;
+      --nav-bg:#1B0E0B; --nav-ink:#E3D2CB; --nav-ink-dim:#A2877D; --nav-active:#351A14; --nav-line:#2C1510;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#140D0B; --surface:#1F1512; --sunk:#180F0D; --ink:#EFE6E1; --muted:#A99B93;
+    --line:#382622; --line-soft:#2A1C19;
+    --teal:#E08A6B; --teal-soft:#2E1A14; --teal-ink:#1E0D08;
+    --copper:#EDA07A; --copper-soft:#33190F;
+    --good:#63C79A; --good-soft:#12291F; --warn:#D3A84A; --warn-soft:#2A2517;
+    --nav-bg:#1B0E0B; --nav-ink:#E3D2CB; --nav-ink-dim:#A2877D; --nav-active:#351A14; --nav-line:#2C1510;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg); color:var(--ink); font:15px/1.5 "Commissioner",system-ui,sans-serif;}
+  h1,h2,h3,th,.ui,.tag,.btn,.chip,.nav a,.tab{font-family:"Golos Text",system-ui,sans-serif;}
+  .num{font-family:"JetBrains Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+  .tag{font:600 10.5px/1.4 "Golos Text",sans-serif; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);}
+
+  .shell{display:grid; grid-template-columns:238px minmax(0,1fr); min-height:100%;}
+  .shell > *{min-width:0; max-width:100%;}
+  main{width:100%;}
+  @media (max-width:900px){ .shell{grid-template-columns:1fr;} }
+
+  .nav{background:var(--nav-bg); color:var(--nav-ink); padding:18px 14px calc(18px + env(safe-area-inset-bottom,0px));}
+  .nav .brand{display:flex; align-items:baseline; gap:8px; padding:0 8px 16px; border-bottom:1px solid var(--nav-line); margin-bottom:12px;}
+  .nav .brand b{font:700 17px/1 "Golos Text",sans-serif; color:#FFFFFF; letter-spacing:-0.01em;}
+  .nav .brand span{font:600 10px/1 "Golos Text",sans-serif; letter-spacing:.1em; text-transform:uppercase; color:#E0885F;}
+  .nav ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px;}
+  .nav a{display:flex; justify-content:space-between; align-items:center; gap:8px; padding:9px 10px; border-radius:9px; color:var(--nav-ink); text-decoration:none; font:500 13.5px/1.2 "Golos Text",sans-serif; cursor:pointer;}
+  .nav a small{font:600 10px/1 "Golos Text",sans-serif; color:var(--nav-ink-dim); letter-spacing:.06em;}
+  .nav a:hover{background:var(--nav-active);}
+  .nav a[aria-current="page"]{background:var(--nav-active); color:#FFFFFF;}
+  .nav .navsec{padding:14px 10px 6px; color:var(--nav-ink-dim); font:600 10px/1 "Golos Text",sans-serif; letter-spacing:.12em; text-transform:uppercase;}
+  @media (max-width:900px){
+    .nav{position:sticky; top:0; z-index:5; padding:10px 0 0;}
+    .nav .brand{padding:0 16px 10px;}
+    .nav ul{flex-direction:row; overflow-x:auto; gap:4px; padding:0 12px 10px;}
+    .nav .navsec{display:none;}
+    .nav a{white-space:nowrap;}
+    .nav a small{display:none;}
+  }
+
+  main{padding-inline:16px; padding-block:22px 44px; max-width:1180px;}
+  .head{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:12px; margin-bottom:16px;}
+  h1{font-size:25px; font-weight:700; margin:0 0 3px; letter-spacing:-0.015em; text-wrap:balance;}
+  .lede{color:var(--muted); margin:0; max-width:64ch;}
+  h2{font-size:15px; font-weight:600; margin:0;}
+  h3{font-size:13px; font-weight:600; margin:0 0 8px;}
+
+  .panel{background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+  .panel > header{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid var(--line);}
+  .pad{padding:14px;}
+  .stack{display:flex; flex-direction:column; gap:16px;}
+  .two{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:16px; align-items:start;}
+  .even{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; align-items:start;}
+  @media (max-width:880px){ .two,.even{grid-template-columns:1fr;} }
+
+  .kpis{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px;}
+  @media (max-width:760px){ .kpis{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .kpi{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
+  .kpi small{color:var(--muted); font-size:12px;}
+  .kpi b{display:block; font:600 21px/1.2 "JetBrains Mono",monospace; margin-top:6px; letter-spacing:-0.02em;}
+  .kpi.alarm b{color:var(--copper);} .kpi.okv b{color:var(--good);}
+
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  .tablewrap{overflow-x:auto;}
+  th{text-align:left; font-size:10.5px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap;}
+  td{padding:10px 12px; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+  tr:last-child td{border-bottom:0;}
+  td.r,th.r{text-align:right;}
+  td.r.num,td.r .num{white-space:nowrap;}
+  tr.soon td{background:var(--warn-soft);}
+  .sub{display:block; color:var(--muted); font-size:12px;}
+
+  .chip{display:inline-block; font:600 10.5px/1 "Golos Text",sans-serif; letter-spacing:.05em; text-transform:uppercase; padding:5px 9px; border-radius:999px; border:1px solid var(--line); color:var(--muted); white-space:nowrap;}
+  .chip.teal{border-color:var(--teal); color:var(--teal); background:var(--teal-soft);}
+  .chip.ok{border-color:var(--good); color:var(--good); background:var(--good-soft);}
+  .chip.hot{border-color:var(--copper); color:var(--copper); background:var(--copper-soft);}
+  .chip.warn{border-color:var(--warn); color:var(--warn); background:var(--warn-soft);}
+
+  .btn{border:1px solid var(--line); background:var(--surface); color:var(--ink); font:600 13px/1 "Golos Text",sans-serif; padding:10px 14px; border-radius:999px; cursor:pointer;}
+  .btn:hover{border-color:var(--teal);}
+  .btn.primary{background:var(--teal); border-color:var(--teal); color:var(--teal-ink);}
+  .btn.cta{background:var(--copper); border-color:var(--copper); color:#FFFFFF;}
+  .btn.small{padding:7px 11px; font-size:12px;}
+  .btn:disabled{opacity:.42; cursor:not-allowed;}
+  .row-btns{display:flex; flex-wrap:wrap; gap:8px;}
+  button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
+
+  label{display:flex; flex-direction:column; gap:5px; font:600 10.5px/1.3 "Golos Text",sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--muted);}
+  input,select,textarea{font:400 15px/1.3 "Commissioner",sans-serif; color:var(--ink); background:var(--sunk); border:1px solid var(--line); border-radius:9px; padding:9px 10px; width:100%;}
+  form.grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;}
+  @media (max-width:560px){ form.grid{grid-template-columns:1fr;} }
+  .span2{grid-column:1 / -1;}
+  .switch{display:flex; flex-direction:row; align-items:center; gap:8px; font:600 12.5px/1.3 "Golos Text",sans-serif; color:var(--ink); text-transform:none; letter-spacing:0;}
+  .switch input{width:auto;}
+  .hint{font-size:12px; color:var(--muted);}
+
+  .calc{background:var(--sunk); border:1px solid var(--line); border-radius:10px; padding:11px 12px; font-size:13.5px;}
+  .calc .line{display:flex; justify-content:space-between; gap:10px; padding:3px 0;}
+  .calc b{font-family:"JetBrains Mono",monospace;}
+
+  /* chat */
+  .chat{background:var(--sunk); height:min(58vh,470px); overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:8px;}
+  .msg{max-width:88%; padding:9px 12px; border-radius:13px; border:1px solid var(--line); white-space:pre-wrap; background:var(--surface);}
+  .msg.in{align-self:flex-start; border-bottom-left-radius:4px;}
+  .msg.out{align-self:flex-end; border-bottom-right-radius:4px; background:var(--good-soft);}
+  .msg .who{display:block; font:600 10px/1 "Golos Text",sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin-bottom:5px;}
+  .msg .time{display:block; font-size:11px; color:var(--muted); margin-top:5px;}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:10px; margin-top:8px;}
+  .card .row{display:flex; justify-content:space-between; gap:12px; padding:5px 0; border-bottom:1px dashed var(--line);}
+  .card .row:last-child{border-bottom:0;}
+  .card .row.total{font-weight:600; border-top:1px solid var(--line); border-bottom:0; margin-top:4px; padding-top:8px;}
+  .gone{color:var(--muted); text-decoration:line-through;}
+  .suggest{text-align:left; width:100%; border:1px dashed var(--teal); background:var(--teal-soft); color:var(--ink); border-radius:12px; padding:10px 12px; cursor:pointer; font:inherit;}
+  .suggest .tag{display:block; margin-bottom:4px; color:var(--teal);}
+
+  /* shop */
+  .shopgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px;}
+  .good{border:1px solid var(--line); border-radius:12px; padding:12px; background:var(--surface); display:flex; flex-direction:column; gap:8px;}
+  .good .thumb{height:78px; border-radius:9px; border:1px solid var(--line-soft);}
+  .good .price{font:600 17px/1 "JetBrains Mono",monospace;}
+  .qtyrow{display:flex; align-items:center; gap:8px;}
+  .qtyrow input{width:84px; text-align:right;}
+  .cartline{display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px dashed var(--line);}
+
+  /* kanban */
+  .board{display:grid; grid-template-columns:repeat(auto-fit,minmax(215px,1fr)); gap:12px;}
+  .col{background:var(--sunk); border:1px solid var(--line); border-radius:12px; padding:10px; min-height:90px;}
+  .col > .tag{display:flex; justify-content:space-between; margin-bottom:8px;}
+  .ocard{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:10px; margin-bottom:8px;}
+  .ocard b{font-size:13.5px;}
+  .ocard .meta{display:flex; flex-wrap:wrap; gap:6px; margin-top:7px;}
+  .ocard .acts{margin-top:9px;}
+  .timer{font:600 15px/1 "JetBrains Mono",monospace; color:var(--teal);}
+  .timer.low{color:var(--copper);}
+
+  /* agent feed */
+  .feed{background:var(--sunk); max-height:min(46vh,380px); overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px;}
+  .say{background:var(--surface); border:1px solid var(--line); border-radius:12px; border-top-left-radius:4px; padding:10px 12px; font-size:14px;}
+  .say.alert{border-color:var(--copper);} .say.good{border-color:var(--good);}
+  .say .tag{display:block; margin-bottom:4px; color:var(--teal);}
+  .say.alert .tag{color:var(--copper);}
+  .asks{display:flex; flex-wrap:wrap; gap:6px;}
+  .asks button{border:1px dashed var(--teal); background:var(--teal-soft); color:var(--ink); border-radius:999px; padding:7px 11px; font:500 12.5px/1 "Commissioner",sans-serif; cursor:pointer;}
+  .askrow{display:flex; gap:8px;}
+
+  /* architecture */
+  .layer{border:1px solid var(--line); border-radius:12px; padding:12px 14px; background:var(--surface);}
+  .layer + .layer{margin-top:10px;}
+  .layer .tag{color:var(--copper);}
+  .boxes{display:flex; flex-wrap:wrap; gap:8px; margin-top:9px;}
+  .box{border:1px solid var(--line); border-radius:9px; padding:8px 11px; background:var(--sunk); font-size:13px;}
+  .box b{display:block; font:600 12.5px/1.3 "Golos Text",sans-serif;}
+  .box span{color:var(--muted); font-size:12px;}
+  .arrow{text-align:center; color:var(--muted); font-size:16px; line-height:1; padding:4px 0;}
+  .flow{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+  .flow .step{border:1px solid var(--teal); color:var(--teal); background:var(--teal-soft); border-radius:999px; padding:7px 12px; font:600 12px/1 "Golos Text",sans-serif;}
+  .flow .sep{color:var(--muted);}
+
+  .kv{display:flex; justify-content:space-between; gap:14px; padding:9px 14px; border-bottom:1px solid var(--line-soft); font-size:14px;}
+  .kv:last-of-type{border-bottom:0;}
+  .kv > span:first-child{color:var(--muted); flex:0 0 auto;}
+  .kv > span:last-child{text-align:right;}
+  ul.plain{list-style:none; margin:0; padding:0;}
+  ul.plain li{display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px;}
+  ul.plain li:last-child{border-bottom:0;}
+  ul.plain time{font:400 12px/1.5 "JetBrains Mono",monospace; color:var(--muted); flex:0 0 auto;}
+  .note{color:var(--muted); font-size:13px; max-width:74ch; margin-top:20px;}
+  @media (prefers-reduced-motion:no-preference){ .msg,.say{animation:rise .18s ease-out;} }
+  @keyframes rise{from{opacity:.4; transform:translateY(4px);} to{opacity:1; transform:none;}}
+</style>
+
+<div class="shell">
+  <nav class="nav">
+    <div class="brand"><b>Уч Кудук</b><span>контур</span></div>
+    <div class="navsec">Продажи</div>
+    <ul id="nav1"></ul>
+    <div class="navsec">Учёт</div>
+    <ul id="nav2"></ul>
+    <div class="navsec">Система</div>
+    <ul id="nav3"></ul>
+  </nav>
+  <main id="view"></main>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ данные ============ */
+var TODAY = new Date(2026, 8, 19);
+var LOSS_NORM = 4.0, THRESHOLD = 30000, DELIVERY = 1490, TOLERANCE = 10;
+
+var POINTS = [
+  {id:"alm1", name:"Алматы, Жарокова 124", type:"own", manager:"Асхат", phone:"+7 706 659-77-77", hours:"10:00 – 23:00", ig:"uchkuduk_fish"},
+  {id:"kask", name:"Каскелен, Жангозина 7а", type:"own", manager:"Мурат", phone:"+7 707 663-08-76", hours:"10:00 – 23:00", ig:"uchkuduk_fish"},
+  {id:"tuzd", name:"Туздыбастау, Дюсебаева 2/1", type:"franchise", manager:"Данияр", phone:"–", hours:"11:00 – 23:00", ig:"uchkuduk_fish_tuzdybastau"},
+  {id:"seif", name:"Алматы, Сейфуллина 452", type:"franchise", manager:"Ерлан", phone:"–", hours:"10:00 – 23:00", ig:"uchkuduk_fish_seifullina"},
+  {id:"ainb", name:"Алматы, Айнабулак 2, 84б", type:"franchise", manager:"Сабит", phone:"–", hours:"10:00 – 23:00", ig:"uchkuduk_fish_ainabulak"},
+  {id:"asta", name:"Астана, Бектурова 3, ЖК Bi City Seoul", type:"franchise", manager:"Нурлан", phone:"+7 701 566-97-68", hours:"10:00 – 23:00", ig:"uchkuduk_fish_astana"},
+  {id:"navo", name:"Навои 37, ЖК Науаи", type:"franchise", manager:"Алишер", phone:"+7 771 968-89-98", hours:"10:00 – 23:00", ig:"uchkuduk_fish_navoi"}
+];
+
+var GOODS = [
+  {id:"sudak",   name:"Судак свежемороженый",   unit:"кг", price:2900, kind:"raw",   shelf:90, tone:"#8FA9B5"},
+  {id:"leshch",  name:"Лещ сырец",              unit:"кг", price:0,    kind:"raw",   shelf:10, tone:"#A9B48F"},
+  {id:"leshch_s",name:"Лещ холодного копчения", unit:"кг", price:3800, kind:"ready", shelf:14, norm:58, tone:"#B98A5A"},
+  {id:"skumbr",  name:"Скумбрия х/к",           unit:"кг", price:3600, kind:"ready", shelf:20, tone:"#C09A6B"},
+  {id:"vobla",   name:"Вобла вяленая",          unit:"кг", price:4200, kind:"ready", shelf:60, tone:"#C7B07C"},
+  {id:"beer",    name:"Пиво разливное светлое", unit:"л",  price:1100, kind:"ready", shelf:30, tone:"#D4B25C"}
+];
+
+var S = {
+  view:"overview",
+  lang:"ru",
+  point:"alm1",
+  night:false,
+  stop:false,
+  clock:11*60+8,
+  seqB:1062, seqO:4418,
+  batches:[
+    {id:"П-1041", point:"alm1", good:"sudak",   in:60,  left:4.5,  cost:2100, supplier:"Балхаш-Рыба, ТОО", inv:"8841", date:"03.09", exp:"02.12"},
+    {id:"П-1052", point:"alm1", good:"sudak",   in:40,  left:10.0, cost:2450, supplier:"Каспий Трейд",     inv:"9017", date:"12.09", exp:"11.12"},
+    {id:"П-1047", point:"alm1", good:"leshch",  in:100, left:30.0, cost:1450, supplier:"Балхаш-Рыба, ТОО", inv:"8903", date:"09.09", exp:"25.09"},
+    {id:"П-1049", point:"alm1", good:"leshch_s",in:40.6,left:3.2,  cost:2500, supplier:"своё производство",inv:"акт 14", date:"10.09", exp:"24.09"},
+    {id:"П-1055", point:"alm1", good:"skumbr",  in:12,  left:4.8,  cost:2380, supplier:"Каспий Трейд",     inv:"9044", date:"15.09", exp:"05.10"},
+    {id:"П-1050", point:"alm1", good:"vobla",   in:18,  left:6.2,  cost:3050, supplier:"Арал Фиш",         inv:"8961", date:"11.09", exp:"10.11"},
+    {id:"П-1053", point:"alm1", good:"beer",    in:60,  left:38,   cost:640,  supplier:"Пивзавод №1",      inv:"9022", date:"13.09", exp:"13.10"},
+    {id:"П-1044", point:"kask", good:"sudak",   in:35,  left:12.0, cost:2180, supplier:"Балхаш-Рыба, ТОО", inv:"8858", date:"05.09", exp:"04.12"},
+    {id:"П-1054", point:"kask", good:"skumbr",  in:10,  left:6.4,  cost:2380, supplier:"Каспий Трейд",     inv:"9044", date:"15.09", exp:"05.10"},
+    {id:"П-1051", point:"tuzd", good:"vobla",   in:22,  left:14.5, cost:3120, supplier:"Арал Фиш",         inv:"8974", date:"12.09", exp:"11.11"},
+    {id:"П-1056", point:"tuzd", good:"sudak",   in:25,  left:18.0, cost:2510, supplier:"Каспий Трейд",     inv:"9031", date:"16.09", exp:"15.12"},
+    {id:"П-1057", point:"seif", good:"skumbr",  in:14,  left:9.6,  cost:2400, supplier:"Каспий Трейд",     inv:"9046", date:"16.09", exp:"06.10"},
+    {id:"П-1058", point:"seif", good:"beer",    in:40,  left:22,   cost:650,  supplier:"Пивзавод №1",      inv:"9039", date:"15.09", exp:"15.10"},
+    {id:"П-1059", point:"ainb", good:"vobla",   in:16,  left:11.3, cost:3090, supplier:"Арал Фиш",         inv:"8982", date:"14.09", exp:"13.11"},
+    {id:"П-1060", point:"asta", good:"sudak",   in:30,  left:21.5, cost:2560, supplier:"Каспий Трейд",     inv:"9052", date:"17.09", exp:"16.12"},
+    {id:"П-1061", point:"asta", good:"leshch_s",in:12,  left:5.4,  cost:2620, supplier:"своё производство",inv:"акт 9", date:"16.09", exp:"30.09"},
+    {id:"П-1062", point:"navo", good:"skumbr",  in:11,  left:7.8,  cost:2420, supplier:"Каспий Трейд",     inv:"9048", date:"16.09", exp:"06.10"}
+  ],
+  moves:[
+    {t:"09:14 03.09", point:"alm1", type:"Приёмка", good:"sudak", batch:"П-1041", qty:60, who:"Асхат"},
+    {t:"10:02 09.09", point:"alm1", type:"Приёмка", good:"leshch", batch:"П-1047", qty:100, who:"Асхат"},
+    {t:"08:40 10.09", point:"alm1", type:"Переработка", good:"leshch", batch:"П-1047", qty:-70, who:"Цех"},
+    {t:"14:20 10.09", point:"alm1", type:"Переработка", good:"leshch_s", batch:"П-1049", qty:40.6, who:"Цех"},
+    {t:"11:05 11.09", point:"alm1", type:"Приёмка", good:"vobla", batch:"П-1050", qty:18, who:"Мурат"},
+    {t:"09:30 12.09", point:"alm1", type:"Приёмка", good:"sudak", batch:"П-1052", qty:40, who:"Асхат"},
+    {t:"16:44 13.09", point:"alm1", type:"Списание", good:"leshch_s", batch:"П-1049", qty:-1.4, who:"Мурат", note:"усушка"},
+    {t:"12:10 15.09", point:"alm1", type:"Приёмка", good:"skumbr", batch:"П-1055", qty:12, who:"Мурат"},
+    {t:"18:20 16.09", point:"alm1", type:"Продажа", good:"sudak", batch:"П-1041", qty:-55.5, who:"Розница"},
+    {t:"18:25 16.09", point:"alm1", type:"Продажа", good:"leshch_s", batch:"П-1049", qty:-36.0, who:"Розница"},
+    {t:"13:15 17.09", point:"alm1", type:"Продажа", good:"skumbr", batch:"П-1055", qty:-7.2, who:"Розница"},
+    {t:"10:40 18.09", point:"alm1", type:"Продажа", good:"vobla", batch:"П-1050", qty:-11.8, who:"Розница"},
+    {t:"17:50 18.09", point:"alm1", type:"Продажа", good:"sudak", batch:"П-1052", qty:-30.0, who:"Розница"}
+  ],
+  yields:[{good:"leshch_s", pct:58.0, date:"10.09"}],
+  clients:[
+    {id:1, name:"Ержан Сапаров", phone:"+7 701 214 55 09", city:"Алматы", lang:"Русский", point:"alm1",
+     addr:["Абая 145, кв. 12","офис, Сейфуллина 498"], orders:7, sum:118400, last:"16.09", tags:["рыба","пиво"]},
+    {id:2, name:"Айгуль Нурланова", phone:"+7 705 880 12 33", city:"Алматы", lang:"Казахский", point:"alm1",
+     addr:["Тимирязева 42, кв. 88"], orders:3, sum:41200, last:"02.09", tags:["вобла"]},
+    {id:3, name:"Ресторан «Достар»", phone:"+7 727 350 90 10", city:"Алматы", lang:"Русский", point:"kask",
+     addr:["Жандосова 6, служебный вход"], orders:19, sum:864000, last:"18.09", tags:["опт","судак"]},
+    {id:4, name:"Данияр Ахметов", phone:"+7 747 300 41 77", city:"Каскелен", лang:"", lang:"Казахский", point:"tuzd",
+     addr:["Тауке хана 21"], orders:2, sum:18600, last:"11.08", tags:["пиво"]},
+    {id:5, name:"Marat Iskakov", phone:"+7 708 119 04 26", city:"Алматы", lang:"English", point:"alm1",
+     addr:["Достык 240, кв. 5"], orders:5, sum:76300, last:"14.09", tags:["скумбрия"]}
+  ],
+  orders:[
+    {id:"4415", point:"alm1", client:3, source:"whatsapp", status:"delivery", sum:214600, created:"09:12",
+     lines:[{good:"sudak", qty:40, fact:41.2}], track:"Курьер в пути"},
+    {id:"4416", point:"kask", client:5, source:"shop", status:"paid", sum:22860, created:"10:05",
+     lines:[{good:"skumbr", qty:3.2, fact:3.28},{good:"beer", qty:5, fact:5}]},
+    {id:"4417", point:"alm1", client:2, source:"lead", status:"new", sum:0, created:"10:48",
+     lines:[{good:"vobla", qty:2}]}
+  ],
+  campaigns:[{t:"12.09", name:"Свежий судак, четверг", seg:"покупали рыбу", sent:214, opened:171, orders:23, revenue:412000}],
+  leadLog:[
+    {t:"10:48", text:"Айгуль Нурланова, WhatsApp – спросила про воблу, создан лид"},
+    {t:"10:05", text:"Marat Iskakov – заказ с витрины, оплачен Kaspi"},
+    {t:"09:12", text:"Ресторан «Достар» – повторный заказ, адрес подставлен из карточки"}
+  ],
+  chat:[], chatStep:0, chatWeighed:false, scaleOrder:null,
+  cart:{}, clientSel:null,
+  amo:{diagnosed:false},
+  answered:(function(){ try { return JSON.parse(localStorage.getItem("uk-answered")) || []; } catch(e){ return []; } })(),
+  agent:[]
+};
+
+/* ============ утилиты ============ */
+function good(id){ for(var i=0;i<GOODS.length;i++) if(GOODS[i].id===id) return GOODS[i]; return null; }
+function point(id){ for(var i=0;i<POINTS.length;i++) if(POINTS[i].id===id) return POINTS[i]; return null; }
+function client(id){ for(var i=0;i<S.clients.length;i++) if(S.clients[i].id===id) return S.clients[i]; return null; }
+function batch(id){ for(var i=0;i<S.batches.length;i++) if(S.batches[i].id===id) return S.batches[i]; return null; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function kg(n,u){ return (Math.round(n*100)/100).toFixed(2).replace(".",",")+" "+(u||"кг"); }
+function pctS(n){ return (Math.round(n*10)/10).toFixed(1).replace(".",",")+" %"; }
+function money(n){ return Math.round(n).toLocaleString("ru-RU").replace(/ /g," ").replace(/,/g," ")+" ₸"; }
+function stamp(){ S.clock += 3; var h=Math.floor(S.clock/60)%24, m=S.clock%60; return (h<10?"0":"")+h+":"+(m<10?"0":"")+m; }
+function parseExp(s){ var p=s.split("."); return new Date(+p[1] >= 9 ? 2026 : 2027, +p[1]-1, +p[0]); }
+function daysLeft(b){ return Math.round((parseExp(b.exp)-TODAY)/86400000); }
+function livePoint(pid){ return S.batches.filter(function(b){ return b.left > 0.001 && b.point === pid; }); }
+function stockOf(gid, pid){ var s=0; livePoint(pid||S.point).forEach(function(b){ if(b.good===gid) s+=b.left; }); return s; }
+function fifo(gid, pid){ return livePoint(pid||S.point).filter(function(b){ return b.good===gid; })
+  .sort(function(a,b){ return parseExp(a.exp)-parseExp(b.exp); }); }
+function stockValue(pid){ var s=0; livePoint(pid||S.point).forEach(function(b){ s += b.left*b.cost; }); return s; }
+function lossStats(pid){
+  var inn=0, loss=0, po=0, pi=0;
+  S.moves.forEach(function(m){
+    if(pid && m.point !== pid) return;
+    if(m.type==="Приёмка") inn += m.qty;
+    if(m.type==="Списание" || m.type==="Недостача") loss += -m.qty;
+    if(m.type==="Переработка"){ if(m.qty<0) po += -m.qty; else pi += m.qty; }
+  });
+  loss += (po - pi);
+  return {in:inn, loss:loss, pct: inn ? loss/inn*100 : 0};
+}
+function orderSum(o){
+  var s = 0;
+  o.lines.forEach(function(l){ var g = good(l.good); s += g.price * (l.fact || l.qty); });
+  return s + (o.status === "new" ? 0 : DELIVERY);
+}
+function agentSay(text, kind, head){
+  S.agent.unshift({t:stamp(), text:text, kind:kind||"", head:head||"Агент"});
+  if(S.agent.length > 40) S.agent.pop();
+}
+
+/* ============ навигация ============ */
+var NAV = [
+  {g:1, id:"overview",  t:"Обзор смены",   n:"пульт"},
+  {g:1, id:"chat",      t:"WhatsApp-агент",n:"диалог"},
+  {g:1, id:"shop",      t:"Онлайн-витрина",n:"сайт"},
+  {g:1, id:"orders",    t:"Заказы и лиды", n:"воронка"},
+  {g:1, id:"scale",     t:"Весовая станция", n:"развес"},
+  {g:1, id:"marketing", t:"Рассылки",      n:"акции"},
+  {g:2, id:"warehouse", t:"Склад и партии",n:"вес"},
+  {g:2, id:"clients",   t:"Клиенты",       n:"база"},
+  {g:2, id:"points",    t:"Точки и франшизы", n:"сеть"},
+  {g:3, id:"arch",      t:"Архитектура",   n:"схема"},
+  {g:3, id:"quest",     t:"Открытые вопросы", n:"до старта"},
+  {g:3, id:"integr",    t:"Интеграции",    n:"kaspi, amo"}
+];
+function renderNav(){
+  [1,2,3].forEach(function(g){
+    var ul = document.getElementById("nav"+g); ul.innerHTML = "";
+    NAV.filter(function(x){ return x.g===g; }).forEach(function(x){
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.setAttribute("role","button"); a.tabIndex = 0;
+      if(S.view === x.id) a.setAttribute("aria-current","page");
+      a.innerHTML = "<span>"+esc(x.t)+"</span><small>"+esc(x.n)+"</small>";
+      a.addEventListener("click", function(){ S.view = x.id; render(); });
+      a.addEventListener("keydown", function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); S.view=x.id; render(); } });
+      li.appendChild(a); ul.appendChild(li);
+    });
+  });
+}
+
+/* ============ общие куски ============ */
+function pointPicker(){
+  var o = POINTS.map(function(p){
+    return '<option value="'+p.id+'"'+(p.id===S.point?" selected":"")+'>'+esc(p.name)+(p.type==="franchise"?" · франшиза":"")+'</option>';
+  }).join("");
+  return '<label style="text-transform:none;letter-spacing:0">Точка<select id="pointpick">'+o+'</select></label>';
+}
+function bindPointPicker(){
+  var el = document.getElementById("pointpick");
+  if(el) el.addEventListener("change", function(){ S.point = el.value; render(); });
+}
+function agentPanel(){
+  var feed = S.agent.map(function(a){
+    return '<div class="say '+a.kind+'"><span class="tag">'+esc(a.head)+' · '+a.t+'</span>'+esc(a.text)+'</div>';
+  }).join("") || '<div class="say"><span class="tag">Агент</span>Пока тихо. Проведите операцию – отреагирую.</div>';
+  return '<section class="panel"><header><h2>Агент системы</h2><span class="chip teal">следит сам</span></header>'+
+    '<div class="feed" id="feed">'+feed+'</div>'+
+    '<div class="pad" style="display:flex;flex-direction:column;gap:8px">'+
+    '<div class="asks">'+
+      '<button type="button" data-q="остатки">Остатки</button>'+
+      '<button type="button" data-q="потери">Потери</button>'+
+      '<button type="button" data-q="сроки">Сроки</button>'+
+      '<button type="button" data-q="маржа">Маржа</button>'+
+      '<button type="button" data-q="лиды">Лиды</button>'+
+      '<button type="button" data-q="выход">Выход цеха</button>'+
+    '</div>'+
+    '<div class="askrow"><input id="askinput" placeholder="Спросить про смену" aria-label="Вопрос агенту"><button type="button" class="btn small" id="asksend">Спросить</button></div>'+
+    '<p class="hint">Агент считает по текущим документам. В рабочей системе сюда встаёт ваш агент с доступом к базе.</p></div></section>';
+}
+function bindAgent(){
+  var send = function(q){
+    if(!q) q = "сводка";
+    S.agent.unshift({t:stamp(), text:q, kind:"", head:"Вопрос"});
+    S.agent.unshift({t:stamp(), text:answer(q), kind:"", head:"Агент"});
+    render();
+  };
+  Array.prototype.forEach.call(document.querySelectorAll(".asks button"), function(b){
+    b.addEventListener("click", function(){ send(b.getAttribute("data-q")); });
+  });
+  var inp = document.getElementById("askinput"), btn = document.getElementById("asksend");
+  if(btn) btn.addEventListener("click", function(){ send(inp.value.trim()); });
+  if(inp) inp.addEventListener("keydown", function(e){ if(e.key==="Enter") send(inp.value.trim()); });
+}
+function answer(q){
+  q = (q||"").toLowerCase();
+  if(q.indexOf("остат")>=0 || q.indexOf("склад")>=0){
+    var parts = [];
+    GOODS.forEach(function(g){ var s = stockOf(g.id); if(s>0.001) parts.push(g.name+" – "+kg(s,g.unit)); });
+    return point(S.point).name+": "+parts.join("; ")+". Итого "+money(stockValue())+" по себестоимости.";
+  }
+  if(q.indexOf("потер")>=0 || q.indexOf("списан")>=0){
+    var l = lossStats(S.point);
+    return "Приход "+kg(l.in)+", потери "+kg(l.loss)+" – это "+pctS(l.pct)+" при норме "+pctS(LOSS_NORM)+". "+(l.pct>LOSS_NORM?"Выше нормы, основной вклад дала переработка.":"В норме.");
+  }
+  if(q.indexOf("срок")>=0 || q.indexOf("испорт")>=0){
+    var soon = livePoint(S.point).filter(function(b){ return daysLeft(b)<=6; });
+    if(!soon.length) return "Ближайшую неделю ничего не истекает.";
+    return soon.map(function(b){ return b.id+" "+good(b.good).name+", "+kg(b.left)+", "+(daysLeft(b)<=0?"срок вышел":"осталось "+daysLeft(b)+" дн."); }).join(". ")+". Предлагаю акцию минус 20 процентов.";
+  }
+  if(q.indexOf("маржа")>=0 || q.indexOf("прибыл")>=0){
+    var rows = [];
+    S.batches.forEach(function(b){
+      if(b.point !== S.point) return;
+      var g = good(b.good); if(!g.price) return;
+      var sold = 0;
+      S.moves.forEach(function(m){ if(m.batch===b.id && m.type==="Продажа") sold += -m.qty; });
+      if(sold<=0) return;
+      rows.push(b.id+" "+g.name+": продано "+kg(sold,g.unit)+", маржа "+money(sold*(g.price-b.cost)));
+    });
+    return rows.length ? rows.join(". ")+"." : "Продаж по партиям этой точки пока нет.";
+  }
+  if(q.indexOf("лид")>=0 || q.indexOf("заказ")>=0){
+    var open = S.orders.filter(function(o){ return o.status!=="done" && o.status!=="lost"; });
+    return "В работе "+open.length+" заказов. "+open.map(function(o){ return "№"+o.id+" – "+statusName(o.status); }).join(", ")+".";
+  }
+  if(q.indexOf("выход")>=0 || q.indexOf("цех")>=0){
+    var y = S.yields[S.yields.length-1], norm = good(y.good).norm || 58;
+    return "Последний акт "+y.date+": выход "+pctS(y.pct)+" при норме "+pctS(norm)+". "+(y.pct<norm-3?"Отклонение вниз – стоит проверить смену.":"В допуске.");
+  }
+  if(q.indexOf("сводк")>=0 || q.indexOf("как дела")>=0 || q.indexOf("смена")>=0){
+    var l2 = lossStats(S.point), op = S.orders.filter(function(o){ return o.status!=="done" && o.status!=="lost"; });
+    var soon2 = livePoint(S.point).filter(function(b){ return daysLeft(b)<=6; });
+    return point(S.point).name+": остаток "+money(stockValue(S.point))+", в работе "+op.length+" заказов, потери "+pctS(l2.pct)+" при норме "+pctS(LOSS_NORM)+", партий на исходе срока – "+soon2.length+".";
+  }
+  return "Такого разреза в демо нет. Спросите про остатки, потери, сроки, маржу, лиды, выход цеха или сводку по смене.";
+}
+function statusName(s){
+  return {new:"Новый лид", collecting:"Сборка", invoice:"Счёт выставлен", paid:"Оплачен", delivery:"Доставка", done:"Закрыт", lost:"Отвалился"}[s] || s;
+}
+
+/* ============ ВИД: обзор ============ */
+function viewOverview(){
+  var pid = S.point, l = lossStats(pid);
+  var open = S.orders.filter(function(o){ return o.status!=="done" && o.status!=="lost"; });
+  var rev = S.orders.filter(function(o){ return o.status==="paid"||o.status==="delivery"||o.status==="done"; })
+    .reduce(function(s,o){ return s + (o.sum || orderSum(o)); }, 0);
+  var alerts = livePoint(pid).filter(function(b){ return daysLeft(b)<=6 && good(b.good).price>0; });
+  return '<div class="head"><div><h1>Обзор смены</h1><p class="lede">Один экран на всю сеть. Слева разделы, точка переключается здесь. Всё в демо связано: заказ уменьшает остаток, сборка меняет вес, оплата снимает резерв.</p></div>'+pointPicker()+'</div>'+
+  '<div class="stack">'+
+  '<div class="kpis">'+
+    '<div class="kpi"><small>Заказов в работе</small><b>'+open.length+'</b><span class="tag">новых лидов: '+S.orders.filter(function(o){return o.status==="new";}).length+'</span></div>'+
+    '<div class="kpi okv"><small>Выручка за день</small><b>'+money(rev)+'</b><span class="tag">оплачено</span></div>'+
+    '<div class="kpi"><small>Остаток точки</small><b>'+money(stockValue(pid))+'</b><span class="tag">'+kg(livePoint(pid).reduce(function(s,b){return s+b.left;},0))+'</span></div>'+
+    '<div class="kpi '+(l.pct>LOSS_NORM?"alarm":"okv")+'"><small>Потери за сентябрь</small><b>'+pctS(l.pct)+'</b><span class="tag">норма '+pctS(LOSS_NORM)+'</span></div>'+
+  '</div>'+
+  '<div class="two"><div class="stack">'+
+    '<section class="panel"><header><h2>Правила приёма заказов</h2><span class="chip '+(S.stop?"hot":"ok")+'">'+(S.stop?"приём закрыт":"приём открыт")+'</span></header><div class="pad stack">'+
+      '<label class="switch"><input type="checkbox" id="sw-stop"'+(S.stop?" checked":"")+'> Стоп-приём – цех зашивается</label>'+
+      '<label class="switch"><input type="checkbox" id="sw-night"'+(S.night?" checked":"")+'> Ночь, 23:40 – вне рабочих часов</label>'+
+      '<div class="calc"><div class="line"><span>Часы работы точки</span><b>'+esc(point(S.point).hours)+'</b></div>'+
+      '<div class="line"><span>Круглосуточный приём от</span><b>'+money(THRESHOLD)+'</b></div>'+
+      '<div class="line"><span>Сейчас ночью принимаются</span><b>'+(S.night?"только заказы от "+money(THRESHOLD):"все заказы")+'</b></div>'+
+      '<div class="line"><span>Резерв до оплаты</span><b>30 мин</b></div>'+
+      '<div class="line"><span>Допуск по весу</span><b>±'+TOLERANCE+' %</b></div></div>'+
+      '<p class="hint">Включите ночь и попробуйте оформить мелкий заказ на витрине – агент откажет и переведёт на утро. Включите стоп-приём и напишите агенту в WhatsApp.</p>'+
+    '</div></section>'+
+    '<section class="panel"><header><h2>Что сегодня требует решения</h2></header><div class="pad"><ul class="plain">'+
+      (alerts.length ? alerts.map(function(b){ return '<li><time>срок</time><span>'+esc(b.id)+' '+esc(good(b.good).name)+', '+kg(b.left)+' – '+(daysLeft(b)<=0?"срок вышел":"осталось "+daysLeft(b)+" дн")+'. Агент предлагает акцию минус 20 процентов.'+
+        (b.promo ? ' <span class="chip ok">акция '+money(b.promo)+'</span>' : ' <button type="button" class="btn small cta" data-promo="'+b.id+'">Запустить акцию</button>')+'</span></li>'; }).join("") : '<li><time>—</time><span>Срочного по срокам нет.</span></li>')+
+      (l.pct>LOSS_NORM ? '<li><time>потери</time><span>'+pctS(l.pct)+' при норме '+pctS(LOSS_NORM)+'. Вклад дала переработка леща – выход 58 процентов. <button type="button" class="btn small" data-go="warehouse">Открыть склад</button></span></li>' : "")+
+      '<li><time>CRM</time><span>AmoCRM подключена, но сделки не создаются. <button type="button" class="btn small" data-go="integr">Диагностика</button></span></li>'+
+    '</ul></div></section>'+
+    '<section class="panel"><header><h2>Лента событий</h2><span class="tag">без участия менеджера</span></header><div class="pad"><ul class="plain">'+
+      S.leadLog.map(function(x){ return '<li><time>'+esc(x.t)+'</time><span>'+esc(x.text)+' <button type="button" class="btn small" data-go="orders">В воронку</button></span></li>'; }).join("")+
+    '</ul></div></section>'+
+  '</div>'+agentPanel()+'</div></div>';
+}
+function bindOverview(){
+  bindPointPicker(); bindAgent();
+  var st = document.getElementById("sw-stop"), ni = document.getElementById("sw-night");
+  if(st) st.addEventListener("change", function(){ S.stop = st.checked; agentSay(S.stop?"Стоп-приём включён. Новые заказы агент закрывает сам и переносит на завтра.":"Стоп-приём снят, приём заказов открыт.", S.stop?"alert":"good","Режим"); render(); });
+  if(ni) ni.addEventListener("change", function(){ S.night = ni.checked; agentSay(S.night?"Ночной режим. Принимаю только заказы от "+money(THRESHOLD)+", остальное – на утро.":"Дневной режим, принимаются все заказы.", "", "Режим"); render(); });
+}
+
+/* ============ ВИД: WhatsApp ============ */
+var FLOW = [
+  {who:"c", t:{ru:"Салем! Рыба свежая сегодня есть?",kk:"Сәлем! Бүгін балық бар ма?",en:"Hi! Any fresh fish today?"}},
+  {who:"a", t:{ru:"Здравствуйте, Ержан. Есть. Вот что на сегодня, цены за кг.",kk:"Сәлеметсіз бе, Ержан. Бар. Бүгінгі тізім, бағасы келіге.",en:"Hello, Yerzhan. Yes. Here is today's list, prices per kg."}, card:"catalog"},
+  {who:"c", t:{ru:"Судак 2 кг, лещ х/к 1,5 кг и пиво 5 литров",kk:"Көксерке 2 кг, ысталған табан 1,5 кг және 5 литр сыра",en:"Pike-perch 2 kg, smoked bream 1.5 kg, 5 litres of beer"}},
+  {who:"a", t:{ru:"Судак и пиво есть. Лещ х/к остался 3,2 кг – беру из последней партии. Собираю?",kk:"Көксерке мен сыра бар. Ысталған табан 3,2 кг қалды – соңғы партиядан аламын. Жинайын ба?",en:"Pike-perch and beer are in. Only 3.2 kg of smoked bream left – taking it from the last batch. Shall I pick it?"}},
+  {who:"c", t:{ru:"Да, собирай. Адрес прежний",kk:"Иә, жина. Мекенжай бұрынғы",en:"Yes, pick it. Same address"}},
+  {who:"a", t:{ru:"Принял, адрес Абая 145 из вашей карточки. Рыба весовая – сумма предварительная, уточним на весах. Держу 30 минут.",kk:"Қабылдадым, мекенжай Абай 145 – карточкадан. Балық таразылы, сома алдын ала. 30 минут ұстаймын.",en:"Noted, Abay 145 from your card. Fish is by weight, so this total is preliminary. Holding for 30 minutes."}, card:"prelim", fx:"reserve"},
+  {who:"a", t:{ru:"Собрали. Судак 2,18 кг, лещ 1,42 кг – в допуске. Итог с доставкой ниже, оплата по ссылке Kaspi.",kk:"Жинадық. Көксерке 2,18 кг, табан 1,42 кг – рұқсат шегінде. Жеткізумен қоса сома төменде, Kaspi сілтемесі.",en:"Picked. Pike-perch 2.18 kg, bream 1.42 kg – within tolerance. Final total with delivery below, Kaspi link for payment."}, card:"final", gate:"weighed"},
+  {who:"c", t:{ru:"Оплатил",kk:"Төледім",en:"Paid"}, fx:"pay"},
+  {who:"a", t:{ru:"Оплата пришла. Курьер Яндекса будет через 15 минут, ссылку на отслеживание пришлю сюда.",kk:"Төлем түсті. Яндекс курьері 15 минутта, бақылау сілтемесін осында жіберемін.",en:"Payment received. The Yandex courier arrives in 15 minutes, tracking link lands here."}, fx:"deliver"}
+];
+var STOPMSG = {ru:"Сегодня приём закрыт – цех загружен. Открываю завтра с 9:00 и напишу первым.",kk:"Бүгін қабылдау жабық – цех толы. Ертең 9:00-де ашамын.",en:"Intake is closed today – the shop is at capacity. I reopen at 9:00 tomorrow."};
+
+function chatOrder(){ for(var i=0;i<S.orders.length;i++) if(S.orders[i].wa) return S.orders[i]; return null; }
+function catalogCardHTML(){
+  var rows = GOODS.filter(function(g){ return g.price > 0; }).map(function(g){
+    var st = stockOf(g.id, "alm1");
+    return '<div class="row"><span'+(st<=0?' class="gone"':'')+'>'+esc(g.name)+'</span><span class="num'+(st<=0?" ":"")+'">'+(st<=0?"нет":money(g.price)+" / "+g.unit)+'</span></div>';
+  }).join("");
+  return '<div class="card"><div class="tag">В наличии сегодня</div>'+rows+'</div>';
+}
+function invoiceCardHTML(kind){
+  var o = chatOrder(); if(!o) return "";
+  var sum = 0, rows = o.lines.map(function(l){
+    var g = good(l.good), q = kind==="prelim" ? l.qty : (l.fact||l.qty), c = g.price*q; sum += c;
+    return '<div class="row"><span>'+esc(g.name)+' · '+kg(q,g.unit)+'</span><span class="num">'+money(c)+'</span></div>';
+  }).join("");
+  if(kind==="final"){ sum += DELIVERY; rows += '<div class="row"><span>Доставка, Яндекс</span><span class="num">'+money(DELIVERY)+'</span></div>'; }
+  rows += '<div class="row total"><span>Итого</span><span class="num">'+money(sum)+'</span></div>';
+  if(kind==="final") rows += '<div class="row"><span>Kaspi · kaspi.kz/pay/'+esc(o.id)+'</span></div>';
+  o.sum = sum;
+  return '<div class="card"><div class="tag">'+(kind==="prelim"?"Предварительный счёт":"Счёт после взвешивания")+'</div>'+rows+'</div>';
+}
+function viewChat(){
+  var msgs = S.chat.map(function(m){
+    return '<div class="msg '+(m.who==="c"?"out":"in")+'"><span class="who">'+(m.who==="c"?"Ержан":"Агент")+'</span>'+esc(m.text)+(m.card?(m.card==="catalog"?catalogCardHTML():invoiceCardHTML(m.card)):"")+'<span class="time">'+esc(m.time)+'</span></div>';
+  }).join("");
+  var step = FLOW[S.chatStep];
+  var compose;
+  if(!step){ compose = '<p class="hint">Сценарий пройден. Заказ ушёл в раздел «Заказы и лиды». Нажмите «Начать заново», чтобы повторить на другом языке.</p>'; }
+  else if(step.gate === "weighed" && !S.chatWeighed){ compose = '<p class="hint">Ход за складом: откройте «Заказы и лиды» и нажмите «Собрать и взвесить» на заказе из WhatsApp.</p>'; }
+  else if(step.who === "a"){ compose = '<button type="button" class="btn primary" id="chatnext">Агент отвечает</button>'; }
+  else { compose = '<button type="button" class="suggest" id="chatnext"><span class="tag">Ответить как клиент</span>'+esc(step.t[S.lang])+'</button>'; }
+
+  return '<div class="head"><div><h1>WhatsApp-агент</h1><p class="lede">Первый контакт, каталог, сбор корзины, счёт и доставка. Диалог идёт на языке клиента. Заказ отсюда живёт в общей воронке и уменьшает остатки склада.</p></div>'+
+    '<div class="row-btns">'+
+      ['ru','kk','en'].map(function(l){ return '<button type="button" class="btn small'+(S.lang===l?" primary":"")+'" data-lang="'+l+'">'+({ru:"Рус",kk:"Каз",en:"Eng"}[l])+'</button>'; }).join("")+
+      '<button type="button" class="btn small" id="chatreset">Начать заново</button>'+
+    '</div></div>'+
+    '<div class="two"><section class="panel"><header><h2>Ержан Сапаров · +7 701 214 55 09</h2><span class="chip '+(S.stop?"hot":"teal")+'">'+(S.stop?"стоп-приём":"агент на линии")+'</span></header>'+
+    '<div class="chat" id="chat">'+msgs+'</div><div class="pad">'+compose+'</div></section>'+agentPanel()+'</div>';
+}
+function chatPush(who, text, card){
+  S.chat.push({who:who, text:text, card:card||"", time:stamp()});
+}
+function chatAdvance(){
+  var step = FLOW[S.chatStep];
+  if(!step) return;
+  if(step.who === "c" && S.stop && S.chatStep === 0){
+    chatPush("c", step.t[S.lang]);
+    chatPush("a", STOPMSG[S.lang]);
+    agentSay("Клиент написал при закрытом приёме – агент перенёс заказ на завтра и поставил напоминание.", "alert", "Стоп-приём");
+    S.chatStep = FLOW.length;
+    render(); return;
+  }
+  chatPush(step.who, step.t[S.lang], step.card);
+  if(step.fx) chatFx(step.fx);
+  S.chatStep++;
+  var nxt = FLOW[S.chatStep];
+  if(nxt && nxt.who === "a" && !(nxt.gate === "weighed" && !S.chatWeighed)){
+    chatPush(nxt.who, nxt.t[S.lang], nxt.card);
+    if(nxt.fx) chatFx(nxt.fx);
+    S.chatStep++;
+  }
+  render();
+  var c = document.getElementById("chat"); if(c) c.scrollTop = c.scrollHeight;
+}
+function chatFx(fx){
+  var o = chatOrder();
+  if(fx === "reserve"){
+    S.seqO++;
+    var no = {id:String(S.seqO), point:"alm1", client:1, source:"whatsapp", status:"collecting", created:stamp(), wa:true,
+      lines:[{good:"sudak",qty:2},{good:"leshch_s",qty:1.5},{good:"beer",qty:5}], reserve:30*60, sum:0};
+    no.sum = orderSum(no);
+    S.orders.unshift(no);
+    reserveStock(no);
+    agentSay("Заказ №"+no.id+" создан из переписки. Резерв на 30 минут, остаток уменьшен.", "", "Заказ");
+  }
+  if(fx === "pay" && o){ payOrder(o); }
+  if(fx === "deliver" && o){ o.status = "delivery"; o.track = "Курьер назначен"; agentSay("Заявка в Яндекс Доставку создана, трек отправлен клиенту.", "good", "Доставка"); }
+}
+function bindChat(){
+  bindAgent();
+  var n = document.getElementById("chatnext");
+  if(n) n.addEventListener("click", chatAdvance);
+  var r = document.getElementById("chatreset");
+  if(r) r.addEventListener("click", function(){
+    S.orders = S.orders.filter(function(o){ return !o.wa; });
+    S.chat = []; S.chatStep = 0; S.chatWeighed = false; render();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-lang]"), function(b){
+    b.addEventListener("click", function(){
+      S.lang = b.getAttribute("data-lang");
+      S.orders = S.orders.filter(function(o){ return !o.wa; });
+      S.chat = []; S.chatStep = 0; S.chatWeighed = false; render();
+    });
+  });
+}
+
+/* ============ склад: операции ============ */
+function reserveStock(o){
+  o.lines.forEach(function(l){
+    var rest = l.qty;
+    fifo(l.good, o.point).forEach(function(b){
+      if(rest <= 0.001) return;
+      var take = Math.min(rest, b.left);
+      b.left -= take; rest -= take;
+      S.moves.push({t:stamp()+" 19.09", point:o.point, type:"Резерв", good:l.good, batch:b.id, qty:-take, who:"Агент", note:"заказ №"+o.id});
+    });
+  });
+}
+function payOrder(o){
+  o.status = "paid"; o.reserve = 0; o.sum = orderSum(o);
+  o.lines.forEach(function(l){
+    S.moves.push({t:stamp()+" 19.09", point:o.point, type:"Продажа", good:l.good, batch:"по резерву", qty:-(l.fact||l.qty), who:"Розница", note:"заказ №"+o.id});
+  });
+  agentSay("Оплата по заказу №"+o.id+" подтверждена – "+money(o.sum)+". Резерв закрыт, остаток списан по факту.", "good", "Kaspi");
+}
+
+/* ============ ВИД: витрина ============ */
+function viewShop(){
+  var cards = GOODS.filter(function(g){ return g.price > 0; }).map(function(g){
+    var st = stockOf(g.id, S.point);
+    var cur = S.cart[g.id] || 0;
+    return '<div class="good"><div class="thumb" style="background:linear-gradient(135deg,'+g.tone+'33,'+g.tone+'99)"></div>'+
+      '<div><b>'+esc(g.name)+'</b><span class="sub">'+(st>0.001?"в наличии "+kg(st,g.unit):"нет в наличии")+'</span></div>'+
+      '<div class="price">'+money(g.price)+' <span class="sub" style="display:inline">за '+g.unit+'</span></div>'+
+      '<div class="qtyrow"><input type="number" min="0" step="0.1" value="'+cur+'" data-cart="'+g.id+'" aria-label="Количество '+esc(g.name)+'"'+(st<=0.001?" disabled":"")+'><span class="tag">'+g.unit+'</span></div></div>';
+  }).join("");
+  var lines = [], sum = 0;
+  GOODS.forEach(function(g){
+    var q = S.cart[g.id] || 0; if(!q) return;
+    sum += q*g.price;
+    lines.push('<div class="cartline"><span>'+esc(g.name)+' · '+kg(q,g.unit)+'</span><span class="num">'+money(q*g.price)+'</span></div>');
+  });
+  var blocked = S.stop || (S.night && sum < THRESHOLD);
+  var reason = S.stop ? "Приём заказов закрыт – цех загружен. Откроется завтра в 9:00."
+    : (S.night && sum < THRESHOLD ? "Ночью принимаются заказы от "+money(THRESHOLD)+". Не хватает "+money(THRESHOLD-sum)+" – либо оформим на утро." : "");
+  return '<div class="head"><div><h1>Онлайн-витрина</h1><p class="lede">Клиент собирает корзину сам, без менеджера. Остатки те же, что на складе. Заказ падает в общую воронку и резервирует товар. Цены в демо условные – подставим ваш прайс.</p></div>'+pointPicker()+'</div>'+
+    '<div class="two"><section class="panel"><header><h2>Витрина · '+esc(point(S.point).name)+'</h2><span class="chip '+(S.stop?"hot":"ok")+'">'+(S.stop?"приём закрыт":"приём открыт")+'</span></header><div class="pad"><div class="shopgrid">'+cards+'</div></div></section>'+
+    '<div class="stack"><section class="panel"><header><h2>Корзина</h2></header><div class="pad stack">'+
+      (lines.length ? lines.join("") : '<p class="hint">Укажите вес в карточках слева. Рыба весовая – сумма уточнится на весах.</p>')+
+      (lines.length ? '<div class="calc"><div class="line"><span>Товары</span><b>'+money(sum)+'</b></div><div class="line"><span>Доставка, Яндекс</span><b>'+money(DELIVERY)+'</b></div><div class="line"><span>Итого предварительно</span><b>'+money(sum+DELIVERY)+'</b></div></div>' : "")+
+      (blocked && lines.length ? '<div class="calc" style="border-color:var(--copper)"><span>'+esc(reason)+'</span></div>' : "")+
+      '<button type="button" class="btn cta" id="checkout"'+(!lines.length||blocked?" disabled":"")+'>Оформить заказ</button>'+
+      '<p class="hint">После оформления товар уходит в резерв на 30 минут, счёт Kaspi уходит клиенту, таймер идёт в разделе «Заказы».</p>'+
+    '</div></section>'+agentPanel()+'</div></div>';
+}
+function bindShop(){
+  bindPointPicker(); bindAgent();
+  Array.prototype.forEach.call(document.querySelectorAll("[data-cart]"), function(inp){
+    inp.addEventListener("change", function(){
+      var gid = inp.getAttribute("data-cart"), v = parseFloat(inp.value) || 0;
+      var st = stockOf(gid, S.point);
+      if(v > st){ v = Math.floor(st*100)/100; agentSay("На витрине показан реальный остаток: "+good(gid).name+" осталось "+kg(st,good(gid).unit)+".", "alert", "Остаток"); }
+      if(v <= 0) delete S.cart[gid]; else S.cart[gid] = v;
+      render();
+    });
+  });
+  var co = document.getElementById("checkout");
+  if(co) co.addEventListener("click", function(){
+    S.seqO++;
+    var lines = [];
+    GOODS.forEach(function(g){ if(S.cart[g.id]) lines.push({good:g.id, qty:S.cart[g.id]}); });
+    var o = {id:String(S.seqO), point:S.point, client:5, source:"shop", status:"collecting", created:stamp(), lines:lines, reserve:30*60, sum:0};
+    o.sum = orderSum(o);
+    S.orders.unshift(o); reserveStock(o); S.cart = {};
+    agentSay("Заказ №"+o.id+" с витрины на "+money(o.sum)+". Резерв 30 минут, счёт Kaspi отправлен.", "", "Витрина");
+    S.view = "orders"; render();
+  });
+}
+
+/* ============ ВИД: заказы ============ */
+function orderCard(o){
+  var c = client(o.client);
+  var lines = o.lines.map(function(l){
+    var g = good(l.good);
+    return esc(g.name)+" · "+kg(l.fact||l.qty, g.unit)+(l.fact?" факт":"");
+  }).join("<br>");
+  var timer = "";
+  if((o.status === "invoice" || o.status === "collecting") && o.reserve > 0){
+    var m = Math.floor(o.reserve/60), s = o.reserve%60;
+    timer = '<div class="timer'+(o.reserve<=600?" low":"")+'" data-timer="'+o.id+'">'+(m<10?"0":"")+m+":"+(s<10?"0":"")+s+'</div><span class="tag">до снятия резерва · ×20</span>';
+  }
+  var acts = "";
+  if(o.status === "new") acts = '<button type="button" class="btn small primary" data-act="collect" data-id="'+o.id+'">Взять в работу</button>';
+  if(o.status === "collecting") acts = '<button type="button" class="btn small primary" data-act="weigh" data-id="'+o.id+'">На весовую</button>';
+  if(o.status === "invoice") acts = '<button type="button" class="btn small cta" data-act="pay" data-id="'+o.id+'">Оплата пришла</button> <button type="button" class="btn small" data-act="remind" data-id="'+o.id+'">Напомнить</button>';
+  if(o.status === "paid") acts = '<button type="button" class="btn small primary" data-act="deliver" data-id="'+o.id+'">Вызвать курьера</button>';
+  if(o.status === "delivery") acts = '<button type="button" class="btn small" data-act="done" data-id="'+o.id+'">Доставлено</button>';
+  return '<div class="ocard"><b>№'+esc(o.id)+' · '+esc(c ? c.name : "гость")+'</b>'+
+    '<span class="sub">'+lines+'</span>'+
+    '<div class="meta"><span class="chip">'+({whatsapp:"WhatsApp", shop:"витрина", lead:"лид"}[o.source]||o.source)+'</span>'+
+    '<span class="chip teal">'+esc(point(o.point).name.split(",")[0])+'</span>'+
+    (o.sum ? '<span class="chip ok">'+money(o.sum)+'</span>' : '')+'</div>'+
+    (timer ? '<div style="margin-top:8px">'+timer+'</div>' : '')+
+    (o.track ? '<span class="sub">'+esc(o.track)+'</span>' : '')+
+    '<div class="acts">'+acts+'</div></div>';
+}
+function viewOrders(){
+  var cols = [["new","Новые лиды"],["collecting","Сборка"],["invoice","Счёт и резерв"],["paid","Оплачен"],["delivery","Доставка"],["done","Закрыт"]];
+  var board = cols.map(function(c){
+    var list = S.orders.filter(function(o){ return o.status === c[0]; });
+    return '<div class="col"><div class="tag"><span>'+c[1]+'</span><span>'+list.length+'</span></div>'+
+      (list.length ? list.map(orderCard).join("") : '<p class="hint">пусто</p>')+'</div>';
+  }).join("");
+  return '<div class="head"><div><h1>Заказы и лиды</h1><p class="lede">Одна воронка для WhatsApp, витрины и звонков. Каждый входящий становится карточкой – ничего не теряется в переписке. Таймер резерва идёт прямо здесь.</p></div></div>'+
+    '<div class="stack"><section class="panel"><header><h2>Доска смены</h2><span class="tag">напоминание об оплате уходит автоматически за 10 минут</span></header><div class="pad"><div class="board">'+board+'</div></div></section>'+
+    '<div class="two">'+
+    '<section class="panel"><header><h2>Как система ведёт лида</h2></header><div class="pad">'+
+      '<div class="flow"><span class="step">Первый контакт</span><span class="sep">→</span><span class="step">Имя, город, язык</span><span class="sep">→</span><span class="step">Каталог по наличию</span><span class="sep">→</span><span class="step">Корзина</span><span class="sep">→</span><span class="step">Сборка и вес</span><span class="sep">→</span><span class="step">Счёт Kaspi</span><span class="sep">→</span><span class="step">Доставка</span></div>'+
+      '<p class="hint" style="margin-top:12px">Отвалившиеся уходят в отдельный сценарий: через сутки – напоминание, через неделю – акция по его позициям.</p></div></section>'+
+      agentPanel()+'</div></div>';
+}
+function bindOrders(){
+  bindAgent();
+  Array.prototype.forEach.call(document.querySelectorAll("[data-act]"), function(b){
+    b.addEventListener("click", function(){
+      var o = null, id = b.getAttribute("data-id");
+      S.orders.forEach(function(x){ if(x.id === id) o = x; });
+      if(!o) return;
+      var act = b.getAttribute("data-act");
+      if(act === "collect"){ o.status = "collecting"; agentSay("Лид №"+o.id+" взят в работу.", "", "Воронка"); }
+      if(act === "weigh"){ S.scaleOrder = o.id; S.view = "scale"; render(); return; }
+      if(act === "pay"){ payOrder(o); }
+      if(act === "remind"){ agentSay("Напоминание об оплате по заказу №"+o.id+" отправлено в WhatsApp.", "", "Напоминание"); }
+      if(act === "deliver"){ o.status = "delivery"; o.track = "Курьер назначен, 15 минут до склада"; agentSay("Курьер Яндекса вызван на заказ №"+o.id+".", "good", "Доставка"); }
+      if(act === "done"){ o.status = "done"; o.track = "Доставлено"; agentSay("Заказ №"+o.id+" закрыт. Клиент попадёт в сегмент для повторной рассылки.", "good", "Закрытие"); }
+      render();
+    });
+  });
+}
+
+/* ============ ВИД: весовая станция ============ */
+function ean(gid, grams){
+  var idx = 0; GOODS.forEach(function(g,i){ if(g.id===gid) idx = i+1; });
+  var body = "2" + ("0000"+idx).slice(-4) + ("00000"+Math.min(99999, Math.round(grams))).slice(-5);
+  var sum = 0;
+  for(var i=0;i<body.length;i++) sum += (+body[i]) * (i%2 ? 3 : 1);
+  return body + ((10 - sum%10) % 10);
+}
+function scaleOrders(){
+  return S.orders.filter(function(o){ return o.status === "collecting" || o.status === "invoice"; });
+}
+function viewScale(){
+  var list = scaleOrders();
+  var o = null;
+  list.forEach(function(x){ if(x.id === S.scaleOrder) o = x; });
+  if(!o) o = list[0];
+  if(o) S.scaleOrder = o.id;
+
+  var head = '<div class="head"><div><h1>Весовая станция</h1><p class="lede">Рыба продаётся на развес, поэтому в заказе два числа: сколько просил клиент и сколько легло на весы. Счёт выставляется только по второму. Допуск ±'+TOLERANCE+' процентов – за его пределами нужно подтверждение клиента.</p></div></div>';
+
+  if(!o){
+    return head + '<section class="panel"><div class="pad"><p class="hint">Сейчас нет заказов на сборке. Создайте заказ в разделе «WhatsApp-агент» или на витрине – он придёт сюда.</p></div></section>';
+  }
+
+  var sel = list.map(function(x){
+    return '<option value="'+x.id+'"'+(x.id===o.id?" selected":"")+'>№'+x.id+' · '+esc(client(x.client)?client(x.client).name:"гость")+' · '+statusName(x.status)+'</option>';
+  }).join("");
+
+  var rows = o.lines.map(function(l, i){
+    var g = good(l.good);
+    var fact = (typeof l.fact === "number") ? l.fact : l.qty;
+    var dev = l.qty ? (fact - l.qty)/l.qty*100 : 0;
+    var over = Math.abs(dev) > TOLERANCE;
+    var cost = costOf(g.id, fact, o.point);
+    return '<tr><td><strong>'+esc(g.name)+'</strong><span class="sub">цена '+money(g.price)+' за '+g.unit+' · себестоимость '+money(cost)+'</span></td>'+
+      '<td class="r num">'+kg(l.qty, g.unit)+'</td>'+
+      '<td class="r"><input type="number" step="0.01" min="0" value="'+fact+'" data-w="'+i+'" style="width:110px;text-align:right" aria-label="Вес на весах"></td>'+
+      '<td class="r num" data-dev="'+i+'">'+(dev>=0?"+":"−")+pctS(Math.abs(dev))+'</td>'+
+      '<td class="r"><span class="chip '+(over?"hot":"ok")+'" data-chip="'+i+'">'+(over?"вне допуска":"в допуске")+'</span></td>'+
+      '<td class="r num" data-sum="'+i+'">'+money(g.price*fact)+'</td>'+
+      '<td class="num" data-ean="'+i+'">'+ean(g.id, (g.unit==="кг"?fact*1000:fact*100))+'</td></tr>';
+  }).join("");
+
+  return head +
+  '<div class="stack">'+
+  '<section class="panel"><header><h2>Заказ на весах</h2><div style="min-width:240px"><select id="scale-order">'+sel+'</select></div></header>'+
+    '<div class="tablewrap"><table><thead><tr><th>Позиция</th><th class="r">Заказано</th><th class="r">На весах</th><th class="r">Отклонение</th><th class="r">Допуск</th><th class="r">Сумма</th><th>Этикетка</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<div class="pad stack">'+
+      '<div class="calc" id="scale-total"></div>'+
+      '<div class="row-btns">'+
+        '<button type="button" class="btn cta" id="scale-fix">Зафиксировать вес и выставить счёт</button>'+
+        '<button type="button" class="btn" id="scale-ask">Запросить подтверждение клиента</button>'+
+        '<button type="button" class="btn" id="scale-tare">Сбросить на заказанный вес</button>'+
+      '</div>'+
+      '<p class="hint">Вес вносится один раз и становится документом. После фиксации сумма в счёте, себестоимость по партии и остаток склада считаются от него, а не от заказа.</p>'+
+    '</div></section>'+
+  '<div class="two">'+
+    '<section class="panel"><header><h2>Как устроен развес</h2></header><div class="pad"><ul class="plain">'+
+      '<li><time>заказ</time><span>Клиент просит «судак 2 кг». Система считает предварительную сумму и резервирует 2 кг – товар уходит из свободного остатка.</span></li>'+
+      '<li><time>весы</time><span>Сборщик кладёт рыбу на весы. Ровно 2 кг не бывает – попадается 2,18 или 1,84.</span></li>'+
+      '<li><time>допуск</time><span>До ±'+TOLERANCE+' процентов система принимает молча. За пределами – спрашивает клиента до оплаты, а не после.</span></li>'+
+      '<li><time>этикетка</time><span>Весы печатают штрихкод с весом внутри. Сборщик сканирует, а не набирает руками – опечатки в килограммах стоят дороже всего.</span></li>'+
+      '<li><time>счёт</time><span>Сумма пересчитывается от факта. Резерв закрывается ровно на тот вес, что уехал клиенту.</span></li>'+
+      '<li><time>склад</time><span>Списание идёт по FIFO со старой партии, поэтому маржа считается по реальной закупочной цене этой рыбы.</span></li>'+
+    '</ul></div></section>'+
+    agentPanel()+
+  '</div></div>';
+}
+function costOf(gid, qty, pid){
+  var rest = qty, c = 0;
+  fifo(gid, pid).forEach(function(b){
+    if(rest <= 0.001) return;
+    var take = Math.min(rest, b.left); rest -= take; c += take*b.cost;
+  });
+  return c;
+}
+function bindScale(){
+  bindAgent();
+  var sel = document.getElementById("scale-order");
+  if(sel) sel.addEventListener("change", function(){ S.scaleOrder = sel.value; render(); });
+  var o = null;
+  scaleOrders().forEach(function(x){ if(x.id === S.scaleOrder) o = x; });
+  if(!o) return;
+
+  function totals(){
+    var box = document.getElementById("scale-total"); if(!box) return;
+    box.innerHTML = "";
+    var pre = 0, fin = 0, cost = 0, over = false;
+    o.lines.forEach(function(l){
+      var g = good(l.good), fact = (typeof l.fact === "number") ? l.fact : l.qty;
+      pre += g.price*l.qty; fin += g.price*fact; cost += costOf(g.id, fact, o.point);
+      if(l.qty && Math.abs((fact-l.qty)/l.qty*100) > TOLERANCE) over = true;
+    });
+    line(box, "Предварительно по заказу", money(pre));
+    line(box, "По факту весов", money(fin));
+    line(box, "Разница", (fin-pre>=0?"+":"−")+money(Math.abs(fin-pre)));
+    line(box, "Доставка", money(DELIVERY));
+    line(box, "Итого к оплате", money(fin + DELIVERY));
+    line(box, "Себестоимость по партиям", money(cost));
+    line(box, "Маржа", money(fin - cost) + " · " + pctS(fin ? (fin-cost)/fin*100 : 0));
+    var h = document.createElement("div"); h.className = "hint";
+    h.textContent = over ? "Одна из позиций вне допуска ±"+TOLERANCE+" процентов. Счёт выставляется только после подтверждения клиента."
+      : "Все позиции в допуске – счёт можно выставлять сразу.";
+    box.appendChild(h);
+    var fix = document.getElementById("scale-fix");
+    if(fix) fix.disabled = over && !o.confirmed;
+    var ask = document.getElementById("scale-ask");
+    if(ask) ask.disabled = !over || !!o.confirmed;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-w]"), function(inp){
+    inp.addEventListener("input", function(){
+      var i = +inp.getAttribute("data-w"), l = o.lines[i], g = good(l.good);
+      var v = parseFloat(inp.value); if(isNaN(v) || v < 0) v = 0;
+      l.fact = v; o.confirmed = false;
+      var dev = l.qty ? (v - l.qty)/l.qty*100 : 0, over = Math.abs(dev) > TOLERANCE;
+      var d = document.querySelector('[data-dev="'+i+'"]'); if(d) d.textContent = (dev>=0?"+":"−")+pctS(Math.abs(dev));
+      var c = document.querySelector('[data-chip="'+i+'"]');
+      if(c){ c.className = "chip " + (over?"hot":"ok"); c.textContent = over ? "вне допуска" : "в допуске"; }
+      var s = document.querySelector('[data-sum="'+i+'"]'); if(s) s.textContent = money(g.price*v);
+      var e = document.querySelector('[data-ean="'+i+'"]'); if(e) e.textContent = ean(g.id, (g.unit==="кг"?v*1000:v*100));
+      totals();
+    });
+  });
+
+  var fix = document.getElementById("scale-fix");
+  if(fix) fix.addEventListener("click", function(){
+    o.lines.forEach(function(l){ if(typeof l.fact !== "number") l.fact = l.qty; });
+    o.status = "invoice"; o.reserve = o.reserve || 30*60; o.sum = orderSum(o);
+    if(o.wa) S.chatWeighed = true;
+    var parts = o.lines.map(function(l){ return good(l.good).name+" "+kg(l.fact, good(l.good).unit); }).join(", ");
+    agentSay("Заказ №"+o.id+": вес зафиксирован – "+parts+". Итог "+money(o.sum)+", счёт Kaspi ушёл клиенту.", "", "Развес");
+    S.view = "orders"; render();
+  });
+
+  var ask = document.getElementById("scale-ask");
+  if(ask) ask.addEventListener("click", function(){
+    o.confirmed = true;
+    var bad = o.lines.filter(function(l){ return l.qty && Math.abs(((l.fact||l.qty)-l.qty)/l.qty*100) > TOLERANCE; })
+      .map(function(l){ return good(l.good).name+": просили "+kg(l.qty, good(l.good).unit)+", на весах "+kg(l.fact, good(l.good).unit); }).join("; ");
+    if(o.wa){
+      chatPush("a", "По весу вышло за допуск. "+bad+". Оставляем или подрезать до заказанного?");
+      chatPush("c", "Оставляй, беру как есть");
+    }
+    agentSay("Клиенту отправлен запрос по весу: "+bad+". Ответ получен – берёт как есть. Счёт можно выставлять.", "good", "Развес");
+    render();
+  });
+
+  var tare = document.getElementById("scale-tare");
+  if(tare) tare.addEventListener("click", function(){
+    o.lines.forEach(function(l){ l.fact = l.qty; });
+    o.confirmed = false;
+    render();
+  });
+
+  totals();
+}
+
+/* ============ ВИД: склад ============ */
+function viewWarehouse(){
+  var pid = S.point, l = lossStats(pid);
+  var rows = livePoint(pid).slice().sort(function(a,b){ return daysLeft(a)-daysLeft(b); }).map(function(b){
+    var g = good(b.good), d = daysLeft(b);
+    return '<tr'+(d<=6?' class="soon"':'')+'><td><strong>'+esc(b.id)+'</strong><span class="sub">'+esc(g.name)+'</span></td>'+
+      '<td>'+esc(b.supplier)+'<span class="sub">№ '+esc(b.inv)+' от '+esc(b.date)+' · принято '+kg(b.in,g.unit)+'</span></td>'+
+      '<td class="r num">'+kg(b.left,g.unit)+'</td>'+
+      '<td class="r num">'+money(b.cost)+'/'+g.unit+'<span class="sub num">'+money(b.cost*b.left)+'</span></td>'+
+      '<td class="r"><span class="chip '+(d<=0?"hot":d<=6?"warn":"ok")+'">'+(d<=0?"срок вышел":d+" дн.")+'</span><span class="sub num">до '+esc(b.exp)+'</span></td>'+
+      '<td class="r">'+((d<=6 && g.price>0) ? (b.promo ? '<span class="chip ok">акция '+money(b.promo)+'</span>' : '<button type="button" class="btn small cta" data-promo="'+b.id+'">Акция −20 %</button>') : '<span class="sub">–</span>')+'</td></tr>';
+  }).join("");
+  var moves = S.moves.filter(function(m){ return m.point === pid; }).slice(-14).reverse().map(function(m){
+    var g = good(m.good);
+    return '<tr><td class="num">'+esc(m.t)+'</td><td><span class="chip '+(m.type==="Приёмка"?"teal":m.type==="Продажа"?"ok":m.type==="Переработка"?"":"hot")+'">'+esc(m.type)+'</span>'+(m.note?'<span class="sub">'+esc(m.note)+'</span>':'')+'</td>'+
+      '<td>'+esc(g?g.name:m.good)+'<span class="sub">'+esc(m.batch)+'</span></td>'+
+      '<td class="r num">'+(m.qty>0?"+":"−")+kg(Math.abs(m.qty), g?g.unit:"кг")+'</td><td>'+esc(m.who)+'</td></tr>';
+  }).join("");
+  var rawOpts = livePoint(pid).filter(function(b){ return good(b.good).kind === "raw"; })
+    .map(function(b){ return '<option value="'+b.id+'">'+esc(b.id)+' · '+esc(good(b.good).name)+' · '+kg(b.left)+' · '+money(b.cost)+'/кг</option>'; }).join("");
+  var readyOpts = GOODS.filter(function(g){ return g.kind === "ready"; }).map(function(g){ return '<option value="'+g.id+'"'+(g.id==="leshch_s"?" selected":"")+'>'+esc(g.name)+'</option>'; }).join("");
+  var goodOpts = GOODS.map(function(g){ return '<option value="'+g.id+'">'+esc(g.name)+'</option>'; }).join("");
+  var stockOpts = GOODS.filter(function(g){ return stockOf(g.id,pid) > 0.001; }).map(function(g){ return '<option value="'+g.id+'">'+esc(g.name)+' · '+kg(stockOf(g.id,pid),g.unit)+'</option>'; }).join("");
+
+  return '<div class="head"><div><h1>Склад и партии</h1><p class="lede">Остаток нельзя исправить руками – он складывается из документов. Каждая поставка это партия со своей себестоимостью, списание идёт по FIFO.</p></div>'+pointPicker()+'</div>'+
+  '<div class="stack">'+
+  '<div class="kpis">'+
+    '<div class="kpi"><small>Остаток</small><b>'+kg(livePoint(pid).reduce(function(s,b){return s+b.left;},0))+'</b><span class="tag">'+money(stockValue(pid))+'</span></div>'+
+    '<div class="kpi '+(l.pct>LOSS_NORM?"alarm":"okv")+'"><small>Потери</small><b>'+pctS(l.pct)+'</b><span class="tag">норма '+pctS(LOSS_NORM)+'</span></div>'+
+    '<div class="kpi"><small>Партий в обороте</small><b>'+livePoint(pid).length+'</b><span class="tag">FIFO</span></div>'+
+    '<div class="kpi '+(livePoint(pid).filter(function(b){return daysLeft(b)<=6;}).length?"alarm":"okv")+'"><small>На исходе срока</small><b>'+livePoint(pid).filter(function(b){return daysLeft(b)<=6;}).length+'</b><span class="tag">партий</span></div>'+
+  '</div>'+
+  '<section class="panel"><header><h2>Партии · '+esc(point(pid).name)+'</h2><span class="tag">сортировка по сроку</span></header>'+
+    '<div class="tablewrap"><table><thead><tr><th>Партия</th><th>Поставщик, накладная</th><th class="r">Остаток</th><th class="r">Себестоимость</th><th class="r">Срок</th><th class="r">Действие</th></tr></thead><tbody>'+(rows||'<tr><td colspan="6">Нет партий на этой точке.</td></tr>')+'</tbody></table></div></section>'+
+  '<div class="even">'+
+    '<section class="panel"><header><h2>Приёмка по весам</h2></header><div class="pad"><form class="grid" id="f-accept">'+
+      '<label class="span2">Товар<select id="a-good">'+goodOpts+'</select></label>'+
+      '<label>Поставщик<input id="a-supplier" value="Балхаш-Рыба, ТОО"></label>'+
+      '<label>Накладная №<input id="a-invoice" value="8917"></label>'+
+      '<label>По накладной, кг<input id="a-doc" type="number" step="0.01" value="80"></label>'+
+      '<label>Брутто на весах, кг<input id="a-gross" type="number" step="0.01" value="82.4"></label>'+
+      '<label>Тара, кг<input id="a-tare" type="number" step="0.01" value="4.8"></label>'+
+      '<label>Цена закупа, ₸/кг<input id="a-cost" type="number" step="1" value="2150"></label>'+
+      '<div class="span2 calc" id="a-calc"></div>'+
+      '<div class="span2"><button type="submit" class="btn primary">Принять партию</button></div>'+
+    '</form></div></section>'+
+    '<section class="panel"><header><h2>Переработка</h2><span class="tag">норма выхода 58 %</span></header><div class="pad"><form class="grid" id="f-prod">'+
+      '<label class="span2">Партия сырья<select id="p-batch">'+(rawOpts||'<option value="">нет сырья</option>')+'</select></label>'+
+      '<label>Вход, кг<input id="p-in" type="number" step="0.01" value="30"></label>'+
+      '<label>Выход, кг<input id="p-out" type="number" step="0.01" value="16.2"></label>'+
+      '<label class="span2">Что получилось<select id="p-result">'+readyOpts+'</select></label>'+
+      '<div class="span2 calc" id="p-calc"></div>'+
+      '<div class="span2"><button type="submit" class="btn primary">Провести акт</button></div>'+
+    '</form></div></section>'+
+    '<section class="panel"><header><h2>Продажа и списание</h2></header><div class="pad"><form class="grid" id="f-sale">'+
+      '<label>Товар<select id="s-good">'+(stockOpts||'<option value="">нет остатка</option>')+'</select></label>'+
+      '<label>Вес по факту<input id="s-qty" type="number" step="0.01" value="2.18"></label>'+
+      '<label class="span2">Операция<select id="s-kind"><option value="sale">Продажа</option><option value="off">Списание, брак или усушка</option></select></label>'+
+      '<div class="span2 calc" id="s-calc"></div>'+
+      '<div class="span2"><button type="submit" class="btn primary">Провести</button></div>'+
+    '</form></div></section>'+
+    '<section class="panel"><header><h2>Инвентаризация</h2></header><div class="pad"><form class="grid" id="f-inv">'+
+      '<label>Товар<select id="i-good">'+(stockOpts||'<option value="">нет остатка</option>')+'</select></label>'+
+      '<label>Факт на полке<input id="i-qty" type="number" step="0.01" value="13.8"></label>'+
+      '<label class="span2">Ответственный<select id="i-who"><option>Кладовщик Асхат</option><option>Кладовщик Мурат</option></select></label>'+
+      '<div class="span2 calc" id="i-calc"></div>'+
+      '<div class="span2"><button type="submit" class="btn primary">Зафиксировать</button></div>'+
+    '</form></div></section>'+
+  '</div>'+
+  '<div class="two"><section class="panel"><header><h2>Журнал движений</h2><span class="tag">последние 14</span></header>'+
+    '<div class="tablewrap"><table><thead><tr><th>Когда</th><th>Документ</th><th>Товар, партия</th><th class="r">Вес</th><th>Кто</th></tr></thead><tbody>'+(moves||'<tr><td colspan="5">Движений нет.</td></tr>')+'</tbody></table></div></section>'+
+    agentPanel()+'</div></div>';
+}
+function line(box, label, value){
+  var d = document.createElement("div"); d.className = "line";
+  var a = document.createElement("span"); a.textContent = label;
+  var b = document.createElement("b"); b.textContent = value;
+  d.appendChild(a); d.appendChild(b); box.appendChild(d);
+}
+function numOf(id){ var el = document.getElementById(id); var v = el ? parseFloat(el.value) : 0; return isNaN(v) ? 0 : v; }
+function bindWarehouse(){
+  bindPointPicker(); bindAgent();
+  function acceptCalc(){
+    var box = document.getElementById("a-calc"); if(!box) return; box.innerHTML = "";
+    var net = numOf("a-gross") - numOf("a-tare"), doc = numOf("a-doc");
+    var diff = net - doc, dp = doc ? Math.abs(diff)/doc*100 : 0;
+    line(box, "Нетто по весам", kg(net));
+    line(box, "Расхождение с накладной", (diff>=0?"+":"−")+kg(Math.abs(diff))+" · "+pctS(dp));
+    line(box, "Сумма партии", money(net*numOf("a-cost")));
+    var h = document.createElement("div"); h.className = "hint";
+    h.textContent = dp > 1 ? "Больше 1 процента – система оформит акт расхождения." : "В допуске, акт не нужен.";
+    box.appendChild(h);
+  }
+  function prodCalc(){
+    var box = document.getElementById("p-calc"); if(!box) return; box.innerHTML = "";
+    var bsel = document.getElementById("p-batch"), b = bsel ? batch(bsel.value) : null;
+    var inQ = numOf("p-in"), outQ = numOf("p-out");
+    var rsel = document.getElementById("p-result"), res = rsel ? good(rsel.value) : null;
+    var y = inQ ? outQ/inQ*100 : 0, norm = (res && res.norm) ? res.norm : 58;
+    var cost = outQ ? inQ*(b?b.cost:0)/outQ : 0;
+    line(box, "Выход", pctS(y)+" при норме "+pctS(norm));
+    line(box, "Отход", kg(Math.max(0, inQ-outQ)));
+    line(box, "Себестоимость готового", money(cost)+"/кг");
+    if(res && res.price) line(box, "Маржа при "+money(res.price), pctS((res.price-cost)/res.price*100));
+    var h = document.createElement("div"); h.className = "hint";
+    h.textContent = y < norm-3 ? "Ниже нормы – агент поставит отметку на смену." : "В норме.";
+    box.appendChild(h);
+  }
+  function saleCalc(){
+    var box = document.getElementById("s-calc"); if(!box) return; box.innerHTML = "";
+    var sel = document.getElementById("s-good"), g = sel ? good(sel.value) : null; if(!g) return;
+    var need = numOf("s-qty"), rest = need, cost = 0, used = [];
+    fifo(g.id, S.point).forEach(function(b){
+      if(rest <= 0.001) return;
+      var take = Math.min(rest, b.left); rest -= take; cost += take*b.cost;
+      used.push(b.id+" – "+kg(take,g.unit));
+    });
+    line(box, "Списание по FIFO", used.length ? used.join(", ") : "нет остатка");
+    line(box, "Себестоимость", money(cost));
+    if(document.getElementById("s-kind").value === "sale" && g.price){
+      var rev = need*g.price;
+      line(box, "Выручка", money(rev));
+      line(box, "Маржа", money(rev-cost)+" · "+pctS(rev ? (rev-cost)/rev*100 : 0));
+    }
+  }
+  function invCalc(){
+    var box = document.getElementById("i-calc"); if(!box) return; box.innerHTML = "";
+    var sel = document.getElementById("i-good"), g = sel ? good(sel.value) : null; if(!g) return;
+    var book = stockOf(g.id, S.point), fact = numOf("i-qty"), diff = fact - book;
+    var w = 0, c = 0; fifo(g.id, S.point).forEach(function(b){ c += b.cost*b.left; w += b.left; });
+    var avg = w ? c/w : 0;
+    line(box, "По учёту", kg(book,g.unit));
+    line(box, "По факту", kg(fact,g.unit));
+    line(box, diff < 0 ? "Недостача" : diff > 0 ? "Излишек" : "Расхождение", diff ? (diff>0?"+":"−")+kg(Math.abs(diff),g.unit)+" · "+money(Math.abs(diff)*avg) : "нет");
+  }
+  ["a-gross","a-tare","a-doc","a-cost"].forEach(function(id){ var e=document.getElementById(id); if(e) e.addEventListener("input", acceptCalc); });
+  ["p-in","p-out"].forEach(function(id){ var e=document.getElementById(id); if(e) e.addEventListener("input", prodCalc); });
+  ["p-batch","p-result"].forEach(function(id){ var e=document.getElementById(id); if(e) e.addEventListener("change", prodCalc); });
+  var sq = document.getElementById("s-qty"); if(sq) sq.addEventListener("input", saleCalc);
+  ["s-good","s-kind"].forEach(function(id){ var e=document.getElementById(id); if(e) e.addEventListener("change", saleCalc); });
+  var iq = document.getElementById("i-qty"); if(iq) iq.addEventListener("input", invCalc);
+  var ig = document.getElementById("i-good"); if(ig) ig.addEventListener("change", invCalc);
+  acceptCalc(); prodCalc(); saleCalc(); invCalc();
+
+  var fa = document.getElementById("f-accept");
+  if(fa) fa.addEventListener("submit", function(e){
+    e.preventDefault();
+    var gid = document.getElementById("a-good").value, g = good(gid);
+    var net = numOf("a-gross") - numOf("a-tare"), doc = numOf("a-doc");
+    if(net <= 0){ agentSay("Нетто получилось нулевым. Проверьте брутто и тару.", "alert", "Приёмка"); render(); return; }
+    var dp = doc ? Math.abs(net-doc)/doc*100 : 0;
+    S.seqB++;
+    var exp = new Date(TODAY.getTime() + g.shelf*86400000);
+    var nb = {id:"П-"+S.seqB, point:S.point, good:gid, in:net, left:net, cost:numOf("a-cost"),
+      supplier:document.getElementById("a-supplier").value || "без поставщика",
+      inv:document.getElementById("a-invoice").value || "—", date:"19.09",
+      exp:("0"+exp.getDate()).slice(-2)+"."+("0"+(exp.getMonth()+1)).slice(-2)};
+    S.batches.push(nb);
+    S.moves.push({t:stamp()+" 19.09", point:S.point, type:"Приёмка", good:gid, batch:nb.id, qty:net, who:"Асхат"});
+    agentSay("Принял "+nb.id+": "+g.name+", "+kg(net,g.unit)+" по "+money(nb.cost)+" за "+g.unit+", на "+money(net*nb.cost)+".", "", "Приёмка");
+    if(dp > 1) agentSay("Накладная № "+nb.inv+": по документу "+kg(doc)+", по весам "+kg(net)+", расхождение "+pctS(dp)+". Оформил акт и отправил поставщику.", "alert", "Акт расхождения");
+    else agentSay("Расхождение с накладной "+pctS(dp)+" – в допуске.", "good", "Приёмка");
+    render();
+  });
+
+  var fp = document.getElementById("f-prod");
+  if(fp) fp.addEventListener("submit", function(e){
+    e.preventDefault();
+    var b = batch(document.getElementById("p-batch").value);
+    var inQ = numOf("p-in"), outQ = numOf("p-out");
+    var res = good(document.getElementById("p-result").value);
+    if(!b || !res){ agentSay("Выберите партию сырья и результат.", "alert", "Цех"); render(); return; }
+    if(inQ > b.left + 0.001){ agentSay("В партии "+b.id+" только "+kg(b.left)+". Уменьшите вход.", "alert", "Цех"); render(); return; }
+    if(outQ > inQ){ agentSay("Выход больше входа – так не бывает, проверьте весы.", "alert", "Цех"); render(); return; }
+    var y = inQ ? outQ/inQ*100 : 0, norm = res.norm || 58, cost = outQ ? inQ*b.cost/outQ : 0;
+    b.left -= inQ; S.seqB++;
+    var exp = new Date(TODAY.getTime() + res.shelf*86400000);
+    S.batches.push({id:"П-"+S.seqB, point:S.point, good:res.id, in:outQ, left:outQ, cost:Math.round(cost),
+      supplier:"своё производство", inv:"акт "+(14+S.yields.length), date:"19.09",
+      exp:("0"+exp.getDate()).slice(-2)+"."+("0"+(exp.getMonth()+1)).slice(-2)});
+    S.moves.push({t:stamp()+" 19.09", point:S.point, type:"Переработка", good:b.good, batch:b.id, qty:-inQ, who:"Цех"});
+    S.moves.push({t:stamp()+" 19.09", point:S.point, type:"Переработка", good:res.id, batch:"П-"+S.seqB, qty:outQ, who:"Цех"});
+    S.yields.push({good:res.id, pct:y, date:"19.09"});
+    agentSay("Акт проведён: "+kg(inQ)+" сырья дали "+kg(outQ)+" готового. Выход "+pctS(y)+", себестоимость "+money(cost)+" за кг.", "", "Цех");
+    if(y < norm-3) agentSay("Выход "+pctS(y)+" против нормы "+pctS(norm)+". Разница "+kg(inQ*(norm-y)/100)+" – это "+money(inQ*(norm-y)/100*res.price)+" по цене продажи. Отметил смену.", "alert", "Отклонение");
+    render();
+  });
+
+  var fs = document.getElementById("f-sale");
+  if(fs) fs.addEventListener("submit", function(e){
+    e.preventDefault();
+    var g = good(document.getElementById("s-good").value);
+    var need = numOf("s-qty"), kind = document.getElementById("s-kind").value;
+    if(!g || need <= 0){ agentSay("Укажите вес больше нуля.", "alert", "Склад"); render(); return; }
+    if(need > stockOf(g.id, S.point) + 0.001){ agentSay("На складе "+kg(stockOf(g.id,S.point),g.unit)+" – больше провести нельзя. Остаток правится только документом.", "alert", "Склад"); render(); return; }
+    var rest = need, cost = 0, used = [];
+    fifo(g.id, S.point).forEach(function(b){
+      if(rest <= 0.001) return;
+      var take = Math.min(rest, b.left);
+      b.left -= take; rest -= take; cost += take*b.cost;
+      used.push(b.id+" – "+kg(take,g.unit));
+      S.moves.push({t:stamp()+" 19.09", point:S.point, type: kind==="sale"?"Продажа":"Списание", good:g.id, batch:b.id, qty:-take, who: kind==="sale"?"Розница":"Мурат", note: kind==="sale"?"":"брак или усушка"});
+    });
+    if(kind === "sale"){
+      var rev = need*g.price;
+      agentSay("Продажа "+kg(need,g.unit)+" "+g.name+". FIFO: "+used.join(", ")+". Себестоимость "+money(cost)+", выручка "+money(rev)+", маржа "+money(rev-cost)+".", "", "Продажа");
+    } else {
+      agentSay("Списание "+kg(need,g.unit)+" "+g.name+" на "+money(cost)+". FIFO: "+used.join(", ")+".", "alert", "Списание");
+      var l = lossStats(S.point);
+      if(l.pct > LOSS_NORM) agentSay("Потери с начала месяца "+pctS(l.pct)+" при норме "+pctS(LOSS_NORM)+". Пора смотреть причины.", "alert", "Потери");
+    }
+    render();
+  });
+
+  var fi = document.getElementById("f-inv");
+  if(fi) fi.addEventListener("submit", function(e){
+    e.preventDefault();
+    var g = good(document.getElementById("i-good").value);
+    if(!g) return;
+    var fact = numOf("i-qty"), book = stockOf(g.id, S.point), diff = fact - book;
+    var who = document.getElementById("i-who").value;
+    if(Math.abs(diff) < 0.005){ agentSay("Пересчёт "+g.name+": расхождений нет, "+kg(fact,g.unit)+".", "good", "Инвентаризация"); render(); return; }
+    var rest = Math.abs(diff), cost = 0;
+    if(diff < 0){
+      fifo(g.id, S.point).forEach(function(b){
+        if(rest <= 0.001) return;
+        var take = Math.min(rest, b.left);
+        b.left -= take; rest -= take; cost += take*b.cost;
+        S.moves.push({t:stamp()+" 19.09", point:S.point, type:"Недостача", good:g.id, batch:b.id, qty:-take, who:who, note:"инвентаризация"});
+      });
+      agentSay("Недостача "+kg(Math.abs(diff),g.unit)+" по позиции "+g.name+" на "+money(cost)+". Записал на смену: "+who+".", "alert", "Инвентаризация");
+    } else {
+      var list = fifo(g.id, S.point), last = list[list.length-1];
+      if(last){ last.left += rest;
+        S.moves.push({t:stamp()+" 19.09", point:S.point, type:"Излишек", good:g.id, batch:last.id, qty:rest, who:who, note:"инвентаризация"});
+      }
+      agentSay("Излишек "+kg(diff,g.unit)+" по позиции "+g.name+". Обычно это недовес при отпуске – проверьте весы на прилавке.", "alert", "Инвентаризация");
+    }
+    render();
+  });
+}
+
+/* ============ ВИД: клиенты ============ */
+function viewClients(){
+  var rows = S.clients.map(function(c){
+    return '<tr data-client="'+c.id+'" style="cursor:pointer"'+(S.clientSel===c.id?' class="soon"':'')+'><td><strong>'+esc(c.name)+'</strong><span class="sub">'+esc(c.phone)+' · '+esc(c.lang)+'</span></td>'+
+      '<td>'+esc(c.city)+'<span class="sub">'+esc(point(c.point).name)+'</span></td>'+
+      '<td>'+c.addr.map(function(a){ return esc(a); }).join('<span class="sub"></span>')+'<span class="sub">сохранено автоматически из заказов</span></td>'+
+      '<td class="r num">'+c.orders+'<span class="sub num">'+money(c.sum)+'</span></td>'+
+      '<td class="r"><span class="chip">'+esc(c.last)+'</span><span class="sub">'+c.tags.join(", ")+'</span></td></tr>';
+  }).join("");
+  return '<div class="head"><div><h1>Клиенты</h1><p class="lede">Карточка заводится с первого сообщения. Адрес, язык и история сохраняются сами – при повторном заказе агент подставляет прошлый адрес и не спрашивает заново.</p></div></div>'+
+  '<div class="stack"><section class="panel"><header><h2>База · '+S.clients.length+' карточек</h2><span class="tag">сегменты считаются по истории</span></header>'+
+    '<div class="tablewrap"><table><thead><tr><th>Клиент</th><th>Город, точка</th><th>Адреса</th><th class="r">Заказов</th><th class="r">Последний</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>'+
+    '<div class="two">'+clientCard()+
+    '<section class="panel"><header><h2>Что заполняется само</h2></header><div class="pad"><ul class="plain">'+
+      '<li><time>имя</time><span>Из подписи в WhatsApp или из формы на витрине.</span></li>'+
+      '<li><time>язык</time><span>По языку первого сообщения. Дальше вся переписка и рассылки идут на нём.</span></li>'+
+      '<li><time>адрес</time><span>Из заказа. Второй адрес не затирает первый – оба остаются в карточке.</span></li>'+
+      '<li><time>история</time><span>Что брал, на какую сумму, когда. Отсюда строятся сегменты для акций.</span></li>'+
+      '<li><time>точка</time><span>Ближайшая по городу. Франшиза видит только своих клиентов.</span></li>'+
+    '</ul></div></section></div></div>';
+}
+function clientCard(){
+  var c = client(S.clientSel);
+  if(!c) return '<section class="panel"><header><h2>Карточка клиента</h2></header><div class="pad"><p class="hint">Нажмите строку в таблице – откроется карточка с историей, адресами и действиями.</p></div></section>';
+  var orders = S.orders.filter(function(o){ return o.client === c.id; });
+  return '<section class="panel"><header><h2>'+esc(c.name)+'</h2><span class="chip teal">'+esc(c.lang)+'</span></header>'+
+    '<div class="kv"><span>Телефон</span><span>'+esc(c.phone)+'</span></div>'+
+    '<div class="kv"><span>Город, точка</span><span>'+esc(c.city)+' · '+esc(point(c.point).name)+'</span></div>'+
+    '<div class="kv"><span>Адреса</span><span>'+c.addr.map(function(a){ return esc(a); }).join('<br>')+'</span></div>'+
+    '<div class="kv"><span>Заказов</span><span class="num">'+c.orders+' на '+money(c.sum)+'</span></div>'+
+    '<div class="kv"><span>Последний</span><span>'+esc(c.last)+' · '+c.tags.join(", ")+'</span></div>'+
+    '<div class="kv"><span>В работе сейчас</span><span>'+(orders.length ? orders.map(function(o){ return "№"+o.id+" – "+statusName(o.status); }).join("<br>") : "нет")+'</span></div>'+
+    '<div class="actions" style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px">'+
+      '<button type="button" class="btn small primary" data-cact="order">Создать заказ</button>'+
+      '<button type="button" class="btn small" data-cact="wa">Написать в WhatsApp</button>'+
+      '<button type="button" class="btn small" data-cact="promo">Отправить акцию</button>'+
+    '</div></section>';
+}
+function bindClients(){
+  Array.prototype.forEach.call(document.querySelectorAll("[data-client]"), function(tr){
+    tr.addEventListener("click", function(){ S.clientSel = +tr.getAttribute("data-client"); render(); });
+  });
+  var c = client(S.clientSel);
+  Array.prototype.forEach.call(document.querySelectorAll("[data-cact]"), function(b){
+    b.addEventListener("click", function(){
+      if(!c) return;
+      var a = b.getAttribute("data-cact");
+      if(a === "order"){
+        S.seqO++;
+        var g = GOODS[0];
+        var o = {id:String(S.seqO), point:c.point, client:c.id, source:"lead", status:"new", created:stamp(), lines:[{good:g.id, qty:2}], sum:0};
+        S.orders.unshift(o);
+        agentSay("Заказ №"+o.id+" заведён вручную на клиента "+c.name+". Адрес подставлен из карточки: "+c.addr[0]+".", "", "Воронка");
+        S.view = "orders"; render(); return;
+      }
+      if(a === "wa"){
+        chatPush("a", "Здравствуйте, "+c.name.split(" ")[0]+". Сегодня привезли свежий улов. Прислать список?");
+        agentSay("Сообщение клиенту "+c.name+" отправлено в WhatsApp.", "", "Переписка");
+        S.view = "chat"; render(); return;
+      }
+      if(a === "promo"){
+        agentSay("Клиенту "+c.name+" ушла персональная акция по его позициям: "+c.tags.join(", ")+".", "good", "Акция");
+        render();
+      }
+    });
+  });
+}
+
+/* ============ ВИД: рассылки ============ */
+function segments(){
+  return [
+    {id:"fish", name:"Покупали рыбу", list:S.clients.filter(function(c){ return c.tags.indexOf("рыба")>=0 || c.tags.indexOf("судак")>=0 || c.tags.indexOf("скумбрия")>=0; })},
+    {id:"beer", name:"Покупали пиво", list:S.clients.filter(function(c){ return c.tags.indexOf("пиво")>=0; })},
+    {id:"sleep", name:"Не заказывали 30 дней", list:S.clients.filter(function(c){ return c.last.indexOf(".08")>0 || c.last === "02.09"; })},
+    {id:"opt", name:"Опт и заведения", list:S.clients.filter(function(c){ return c.tags.indexOf("опт")>=0; })}
+  ];
+}
+function viewMarketing(){
+  var segs = segments();
+  var soon = livePoint(S.point).filter(function(b){ return daysLeft(b)<=6; })[0];
+  var segOpts = segs.map(function(s){ return '<option value="'+s.id+'">'+esc(s.name)+' · '+s.list.length+'</option>'; }).join("");
+  var hist = S.campaigns.map(function(c){
+    return '<tr><td>'+esc(c.name)+'<span class="sub">'+esc(c.t)+' · '+esc(c.seg)+'</span></td>'+
+      '<td class="r num">'+c.sent+'</td><td class="r num">'+c.opened+'</td><td class="r num">'+c.orders+'</td><td class="r num">'+money(c.revenue)+'</td></tr>';
+  }).join("");
+  var draft = soon ? "Сегодня "+good(soon.good).name.toLowerCase()+" минус 20 процентов – "+money(Math.round(good(soon.good).price*0.8))+" за кг. Осталось "+kg(soon.left)+", отдаём до вечера." :
+    "Свежий судак сегодня – "+money(good("sudak").price)+" за кг. Доставка по городу за 40 минут.";
+  return '<div class="head"><div><h1>Рассылки и акции</h1><p class="lede">Сегменты считаются из истории заказов, а не из ручных списков. Текст агент предлагает сам – по тому, что надо продать сегодня.</p></div>'+pointPicker()+'</div>'+
+  '<div class="two"><div class="stack">'+
+  '<section class="panel"><header><h2>Новая рассылка</h2><span class="chip teal">WhatsApp</span></header><div class="pad"><form class="grid" id="f-camp">'+
+    '<label class="span2">Сегмент<select id="c-seg">'+segOpts+'</select></label>'+
+    '<label class="span2">Текст<textarea id="c-text" rows="3">'+esc(draft)+'</textarea></label>'+
+    '<div class="span2 calc" id="c-calc"></div>'+
+    '<div class="span2 row-btns"><button type="submit" class="btn cta">Отправить</button><span class="hint">В демо сообщения никуда не уходят.</span></div>'+
+  '</form></div></section>'+
+  '<section class="panel"><header><h2>История</h2></header><div class="tablewrap"><table><thead><tr><th>Кампания</th><th class="r">Отправлено</th><th class="r">Прочитано</th><th class="r">Заказов</th><th class="r">Выручка</th></tr></thead><tbody>'+hist+'</tbody></table></div></section>'+
+  '</div>'+agentPanel()+'</div>';
+}
+function bindMarketing(){
+  bindPointPicker(); bindAgent();
+  function calc(){
+    var box = document.getElementById("c-calc"); if(!box) return; box.innerHTML = "";
+    var id = document.getElementById("c-seg").value, s = null;
+    segments().forEach(function(x){ if(x.id === id) s = x; });
+    if(!s) return;
+    line(box, "Получателей", s.list.length + " карточек");
+    line(box, "Языки", s.list.map(function(c){ return c.lang; }).filter(function(v,i,a){ return a.indexOf(v)===i; }).join(", "));
+    line(box, "Ожидаемый отклик", Math.max(1, Math.round(s.list.length*0.11)) + " заказов при 11 процентах");
+  }
+  var sel = document.getElementById("c-seg"); if(sel) sel.addEventListener("change", calc); calc();
+  var f = document.getElementById("f-camp");
+  if(f) f.addEventListener("submit", function(e){
+    e.preventDefault();
+    var id = document.getElementById("c-seg").value, s = null;
+    segments().forEach(function(x){ if(x.id === id) s = x; });
+    if(!s || !s.list.length){ agentSay("В этом сегменте сейчас никого нет.", "alert", "Рассылка"); render(); return; }
+    var opened = Math.round(s.list.length*0.78), orders = Math.max(1, Math.round(s.list.length*0.11));
+    S.campaigns.unshift({t:"19.09", name:document.getElementById("c-text").value.slice(0,40)+"…", seg:s.name,
+      sent:s.list.length, opened:opened, orders:orders, revenue:orders*17400});
+    agentSay("Рассылка ушла на "+s.list.length+" карточек сегмента «"+s.name+"». Каждому на его языке. Отклики придут в воронку как лиды.", "good", "Рассылка");
+    render();
+  });
+}
+
+/* ============ ВИД: точки ============ */
+function viewPoints(){
+  var rows = POINTS.map(function(p){
+    var l = lossStats(p.id);
+    return '<tr><td><strong>'+esc(p.name)+'</strong><span class="sub">'+esc(p.phone)+' · '+esc(p.hours)+' · управляющий '+esc(p.manager)+'</span></td>'+
+      '<td><span class="chip '+(p.type==="own"?"teal":"warn")+'">'+(p.type==="own"?"своя точка":"франшиза")+'</span></td>'+
+      '<td class="r num">'+kg(livePoint(p.id).reduce(function(s,b){ return s+b.left; },0))+'<span class="sub num">'+money(stockValue(p.id))+'</span></td>'+
+      '<td class="r num">'+livePoint(p.id).length+'</td>'+
+      '<td class="r num">'+pctS(l.pct)+'</td>'+
+      '<td>'+(p.type==="own"?"Полный доступ, цены из головного прайса":"Видит только свои остатки и своих клиентов, цены меняет сама")+'<span class="sub">@'+esc(p.ig)+'</span></td>'+
+      '<td class="r"><div class="row-btns" style="justify-content:flex-end">'+
+      '<button type="button" class="btn small" data-go="warehouse" data-point="'+p.id+'">Склад</button>'+
+      '<button type="button" class="btn small" data-go="overview" data-point="'+p.id+'">Пульт</button>'+
+      '</div></td></tr>';
+  }).join("");
+  var fromOpts = POINTS.map(function(p){ return '<option value="'+p.id+'">'+esc(p.name)+'</option>'; }).join("");
+  var goodOpts = GOODS.map(function(g){ return '<option value="'+g.id+'">'+esc(g.name)+'</option>'; }).join("");
+  return '<div class="head"><div><h1>Точки и франшизы</h1><p class="lede">Две свои точки и пять франшиз в одной системе, но с разными правами. У каждой франшизы свой аккаунт и свои остатки. Товар между точками ходит документом – пока приёмку не подтвердили, он в пути и не продаётся нигде.</p></div></div>'+
+  '<div class="stack"><section class="panel"><header><h2>Сеть</h2><span class="tag">точек: '+POINTS.length+'</span></header>'+
+    '<div class="tablewrap"><table><thead><tr><th>Точка</th><th>Тип</th><th class="r">Остаток</th><th class="r">Партий</th><th class="r">Потери</th><th>Права</th><th class="r">Открыть</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>'+
+  '<div class="two"><section class="panel"><header><h2>Перемещение между точками</h2></header><div class="pad"><form class="grid" id="f-move">'+
+    '<label>Откуда<select id="m-from">'+fromOpts+'</select></label>'+
+    '<label>Куда<select id="m-to">'+fromOpts+'</select></label>'+
+    '<label>Товар<select id="m-good">'+goodOpts+'</select></label>'+
+    '<label>Отправлено, кг<input id="m-qty" type="number" step="0.01" value="12"></label>'+
+    '<label class="span2">Принято на месте, кг<input id="m-got" type="number" step="0.01" value="11.4"></label>'+
+    '<div class="span2 calc" id="m-calc"></div>'+
+    '<div class="span2"><button type="submit" class="btn primary">Провести перемещение</button></div>'+
+  '</form></div></section>'+agentPanel()+'</div></div>';
+}
+function bindPoints(){
+  bindAgent();
+  var to = document.getElementById("m-to"); if(to) to.value = "kask";
+  function calc(){
+    var box = document.getElementById("m-calc"); if(!box) return; box.innerHTML = "";
+    var sent = numOf("m-qty"), got = numOf("m-got"), diff = got - sent;
+    line(box, "Отправлено", kg(sent));
+    line(box, "Принято", kg(got));
+    line(box, "Расхождение", diff ? (diff>0?"+":"−")+kg(Math.abs(diff))+" · "+pctS(sent?Math.abs(diff)/sent*100:0) : "нет");
+    var h = document.createElement("div"); h.className = "hint";
+    h.textContent = diff < 0 ? "Недостача повиснет на том, кто принял." : "Расхождения нет – документ закроется сам.";
+    box.appendChild(h);
+  }
+  ["m-qty","m-got"].forEach(function(id){ var e = document.getElementById(id); if(e) e.addEventListener("input", calc); });
+  calc();
+  var f = document.getElementById("f-move");
+  if(f) f.addEventListener("submit", function(e){
+    e.preventDefault();
+    var from = document.getElementById("m-from").value, toP = document.getElementById("m-to").value;
+    var gid = document.getElementById("m-good").value, g = good(gid);
+    var sent = numOf("m-qty"), got = numOf("m-got");
+    if(from === toP){ agentSay("Откуда и куда – одна и та же точка.", "alert", "Перемещение"); render(); return; }
+    if(sent > stockOf(gid, from) + 0.001){ agentSay("На точке «"+point(from).name+"» только "+kg(stockOf(gid,from),g.unit)+".", "alert", "Перемещение"); render(); return; }
+    var rest = sent, cost = 0;
+    fifo(gid, from).forEach(function(b){
+      if(rest <= 0.001) return;
+      var take = Math.min(rest, b.left); b.left -= take; rest -= take; cost += take*b.cost;
+      S.moves.push({t:stamp()+" 19.09", point:from, type:"Перемещение", good:gid, batch:b.id, qty:-take, who:point(from).manager, note:"в "+point(toP).name});
+    });
+    S.seqB++;
+    var exp = new Date(TODAY.getTime() + g.shelf*86400000);
+    S.batches.push({id:"П-"+S.seqB, point:toP, good:gid, in:got, left:got, cost: got ? Math.round(cost/got) : 0,
+      supplier:"перемещение с "+point(from).name, inv:"пер-"+S.seqB, date:"19.09",
+      exp:("0"+exp.getDate()).slice(-2)+"."+("0"+(exp.getMonth()+1)).slice(-2)});
+    S.moves.push({t:stamp()+" 19.09", point:toP, type:"Приёмка", good:gid, batch:"П-"+S.seqB, qty:got, who:point(toP).manager, note:"перемещение"});
+    if(got < sent - 0.005) agentSay("Перемещение: отправлено "+kg(sent,g.unit)+", принято "+kg(got,g.unit)+". Недостача "+kg(sent-got,g.unit)+" висит на «"+point(toP).name+"», ответственный "+point(toP).manager+".", "alert", "Перемещение");
+    else agentSay("Перемещение проведено: "+kg(got,g.unit)+" ушло на «"+point(toP).name+"» без расхождений.", "good", "Перемещение");
+    render();
+  });
+}
+
+/* ============ ВИД: архитектура ============ */
+function viewArch(){
+  var map = [
+    ["Доставка","Заявка в Яндекс Доставку создаётся после оплаты, трек уходит клиенту","Заказы и лиды"],
+    ["Продажа развесовки","Предварительная сумма по заказу, вес на весах, допуск ±10 %, этикетка со штрихкодом, пересчёт счёта","Весовая станция"],
+    ["Удалённая оплата Kaspi","Счёт ссылкой в переписку, подтверждение оплаты закрывает резерв","Заказы"],
+    ["Онлайн покупка","Витрина с реальными остатками, корзина без менеджера","Онлайн-витрина"],
+    ["Таймер для клиента","Резерв 30 минут, товар уходит из свободного остатка","Заказы"],
+    ["Напоминание оплаты","Автоматически за 10 минут до конца резерва и через сутки после","Заказы"],
+    ["Три языка","Агент держит язык первого сообщения, карточки товаров на трёх языках","WhatsApp"],
+    ["Контроль инвентаря","Остаток из документов, партии, FIFO, инвентаризация с ответственным","Склад и партии"],
+    ["Стоп-лист","По товару – скрывается из каталога. По загрузке – приём останавливается","Обзор, Витрина"],
+    ["Рассылка акций","Сегменты из истории заказов, текст под то, что надо продать сегодня","Рассылки"],
+    ["Обработка лидов","Каждый входящий – карточка в воронке, отвалившиеся в отдельный сценарий","Заказы и лиды"],
+    ["Работа 24/7 от порога","Ночью принимаются заказы от 30 000 ₸, мелкие переносятся на утро","Обзор, Витрина"],
+    ["Франшизы и свои точки","Отдельные остатки, права и отчёты, перемещение документом","Точки и франшизы"],
+    ["База клиентов и адресов","Карточка с первого сообщения, адреса сохраняются сами","Клиенты"],
+    ["AmoCRM","Подключена, сделки не создаются – диагностика и решение","Интеграции"]
+  ];
+  var rows = map.map(function(r){
+    return '<tr><td><strong>'+esc(r[0])+'</strong></td><td>'+esc(r[1])+'</td><td><span class="chip teal">'+esc(r[2])+'</span></td></tr>';
+  }).join("");
+  return '<div class="head"><div><h1>Архитектура</h1><p class="lede">Пять слоёв. Клиент видит только первый, персонал – третий, всё остальное работает само.</p></div></div>'+
+  '<div class="stack">'+
+  '<section class="panel"><header><h2>Слои</h2></header><div class="pad">'+
+    '<div class="layer"><span class="tag">1 · Каналы клиента</span><div class="boxes">'+
+      '<div class="box" data-go="chat"><b>WhatsApp</b><span>Wazzup или Green API</span></div>'+
+      '<div class="box" data-go="shop"><b>Онлайн-витрина</b><span>каталог по остаткам</span></div>'+
+      '<div class="box" data-go="chat"><b>Телеграм</b><span>второй канал</span></div></div></div>'+
+    '<div class="arrow">↓</div>'+
+    '<div class="layer"><span class="tag">2 · Агент</span><div class="boxes">'+
+      '<div class="box" data-go="chat"><b>Диалог</b><span>три языка, каталог, корзина</span></div>'+
+      '<div class="box" data-go="overview"><b>Правила</b><span>стоп-лист, ночной порог, замены</span></div>'+
+      '<div class="box" data-go="warehouse"><b>Контроль</b><span>сроки, потери, выход цеха</span></div></div></div>'+
+    '<div class="arrow">↓</div>'+
+    '<div class="layer"><span class="tag">3 · Ядро и данные</span><div class="boxes">'+
+      '<div class="box" data-go="orders"><b>Сценарии</b><span>n8n или Make</span></div>'+
+      '<div class="box" data-go="warehouse"><b>База</b><span>партии, движения, заказы, клиенты</span></div>'+
+      '<div class="box" data-go="points"><b>Роли</b><span>владелец, точка, франшиза</span></div></div></div>'+
+    '<div class="arrow">↓</div>'+
+    '<div class="layer"><span class="tag">4 · Персонал</span><div class="boxes">'+
+      '<div class="box" data-go="orders"><b>Телеграм-бот</b><span>наличие, сборка, вес</span></div>'+
+      '<div class="box" data-go="scale"><b>Весы с этикеткой</b><span>штрихкод вместо ручного ввода</span></div>'+
+      '<div class="box" data-go="overview"><b>Панель</b><span>воронка, склад, отчёты</span></div></div></div>'+
+    '<div class="arrow">↓</div>'+
+    '<div class="layer"><span class="tag">5 · Внешние сервисы</span><div class="boxes">'+
+      '<div class="box" data-go="integr"><b>Kaspi</b><span>счёт и оплата</span></div>'+
+      '<div class="box" data-go="integr"><b>Яндекс Доставка</b><span>курьер и трек</span></div>'+
+      '<div class="box" data-go="integr"><b>AmoCRM</b><span>если остаётся</span></div></div></div>'+
+  '</div></section>'+
+  '<section class="panel"><header><h2>Путь заказа</h2></header><div class="pad"><div class="flow">'+
+    ['Первый контакт','Имя, город, язык','Каталог по наличию','Список от клиента','Резерв и таймер','Сборка и вес','Счёт Kaspi','Оплата','Яндекс Доставка','Списание по партии']
+      .map(function(s,i,a){ return '<span class="step">'+s+'</span>'+(i<a.length-1?'<span class="sep">→</span>':''); }).join("")+
+  '</div></div></section>'+
+  '<section class="panel"><header><h2>Пункты задания и где они в демо</h2><span class="tag">'+map.length+' пунктов</span></header>'+
+    '<div class="tablewrap"><table><thead><tr><th>Из задания</th><th>Как закрыто</th><th>Раздел</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>'+
+  '</div>';
+}
+
+
+/* ============ ВИД: открытые вопросы ============ */
+var QUESTIONS = [
+  {g:"Сеть и права", q:"Видит ли головной офис остатки и выручку франшиз?", w:"От этого зависят права, отчёты и то, показываем ли сводку по сети или только собственные цифры точки."},
+  {g:"Сеть и права", q:"Франшизы заходят в систему или остаются на своих таблицах?", w:"Если заходят – нужен тариф и роли. Если нет, система считает только свои точки."},
+  {g:"Сеть и права", q:"Прайс единый для сети или каждая точка ставит свою цену?", w:"Единый прайс – одна карточка товара. Разные цены – цена привязывается к точке."},
+  {g:"Товар и вес", q:"Какой допуск по весу считается нормальным?", w:"В демо ±10 процентов. За пределами агент спрашивает клиента до оплаты."},
+  {g:"Товар и вес", q:"Есть ли весы с печатью этикетки со штрихкодом?", w:"Со сканированием вес не набирается руками. Это главный источник ошибок в килограммах."},
+  {g:"Товар и вес", q:"Коптят и вялят сами или закупают готовое?", w:"Если своё производство – нужен акт переработки и нормы выхода. Если нет, этот блок не нужен."},
+  {g:"Товар и вес", q:"Кто и когда обновляет наличие?", w:"Утренний срез от кладовщика или списание в момент продажи. От этого зависит, насколько витрина честная."},
+  {g:"Учёт", q:"Есть ли учётная система – 1С, МойСклад или ничего?", w:"Определяет, откуда брать остатки и себестоимость и нужно ли строить учёт с нуля."},
+  {g:"Учёт", q:"Как сейчас считают потери и считают ли вообще?", w:"По рыбе это главный показатель. Без нормы не с чем сравнивать."},
+  {g:"Учёт", q:"Какие документы обязаны вести по рыбе?", w:"Ветеринарные сопроводительные, СНТ, ЭСФ. Подтверждает бухгалтер заказчика, система хранит номера."},
+  {g:"Деньги", q:"Есть ли доступ к API Kaspi или только обычный Kaspi Pay?", w:"С API оплата подтверждается сама. Без него менеджер нажимает кнопку."},
+  {g:"Деньги", q:"Порог 30 000 – это круглосуточный приём или бесплатная доставка?", w:"В демо сделано как порог ночного приёма. Уточнить до запуска."},
+  {g:"Деньги", q:"Сколько стоит доставка и кто её платит?", w:"В демо 1 490 ₸ на клиента. Тариф и зоны нужны реальные."},
+  {g:"Правовое", q:"Как продают пиво на доставку?", w:"Дистанционная продажа алкоголя в Казахстане ограничена, Яндекс алкоголь не возит. Решение нужно до запуска витрины."},
+  {g:"Работа с клиентом", q:"Кто отвечает ночью и в выходные?", w:"Агент закрывает круглосуточно, но подтверждение заказа и сборка – люди."},
+  {g:"Работа с клиентом", q:"Нужны ли казахский и английский по факту?", w:"В демо три языка. Каждый язык – это ещё и карточки товаров, и шаблоны рассылок."},
+  {g:"Работа с клиентом", q:"Сколько держать резерв до оплаты?", w:"В демо 30 минут. Короче – товар быстрее возвращается, длиннее – меньше отказов."},
+  {g:"Системы", q:"AmoCRM чинить или отказаться?", w:"Сколько людей реально в ней работает. Если ноль – воронка внутри системы дешевле."},
+  {g:"Системы", q:"Какой номер WhatsApp станет рабочим для агента?", w:"Нужен бизнес-аккаунт. Личный номер к API не подключается."}
+];
+function viewQuest(){
+  var groups = [];
+  QUESTIONS.forEach(function(x){ if(groups.indexOf(x.g) < 0) groups.push(x.g); });
+  var n = 0;
+  var blocks = groups.map(function(g){
+    var rows = QUESTIONS.filter(function(x){ return x.g === g; }).map(function(x){
+      var i = n++;
+      var done = S.answered.indexOf(i) >= 0;
+      return '<tr><td style="width:34px"><input type="checkbox" data-q="'+i+'" id="q'+i+'"'+(done?" checked":"")+' aria-label="Вопрос решён" style="width:auto"></td>'+
+        '<td><label for="q'+i+'" style="text-transform:none;letter-spacing:0;font-size:14.5px;color:var(--ink);font-weight:600'+(done?';text-decoration:line-through;color:var(--muted)':'')+'">'+esc(x.q)+'</label>'+
+        '<span class="sub">'+esc(x.w)+'</span></td>'+
+        '<td class="r"><span class="chip '+(done?"ok":"warn")+'">'+(done?"решено":"ждёт ответа")+'</span></td></tr>';
+    }).join("");
+    return '<section class="panel" style="margin-bottom:16px"><header><h2>'+esc(g)+'</h2></header><div class="tablewrap"><table><tbody>'+rows+'</tbody></table></div></section>';
+  }).join("");
+  var left = QUESTIONS.length - S.answered.length;
+  return '<div class="head"><div><h1>Открытые вопросы</h1><p class="lede">Что нужно услышать от заказчика до того, как считать сроки и бюджет. Отмечайте закрытые прямо на встрече – отметки сохраняются в этом браузере.</p></div>'+
+    '<div class="kpi" style="min-width:170px"><small>Осталось решить</small><b>'+left+'</b><span class="tag">из '+QUESTIONS.length+'</span></div></div>'+
+    blocks;
+}
+function bindQuest(){
+  Array.prototype.forEach.call(document.querySelectorAll("[data-q]"), function(c){
+    c.addEventListener("change", function(){
+      var i = +c.getAttribute("data-q"), k = S.answered.indexOf(i);
+      if(c.checked && k < 0) S.answered.push(i);
+      if(!c.checked && k >= 0) S.answered.splice(k, 1);
+      try { localStorage.setItem("uk-answered", JSON.stringify(S.answered)); } catch(e){}
+      render();
+    });
+  });
+}
+
+/* ============ ВИД: интеграции ============ */
+function viewIntegr(){
+  var amo = S.amo.diagnosed ?
+    '<ul class="plain">'+
+      '<li><time>связь</time><span>Аккаунт отвечает, токен живой.</span></li>'+
+      '<li><time>воронка</time><span>Сделки создаются в воронке «Входящие», но её никто не открывает – 214 сделок без движения.</span></li>'+
+      '<li><time>WhatsApp</time><span>Переписка в AmoCRM не приходит: подключён личный номер, а не бизнес-аккаунт.</span></li>'+
+      '<li><time>поля</time><span>Нет полей под вес, партию и точку – заказ туда не ложится целиком.</span></li>'+
+      '<li><time>вывод</time><span>Чинить имеет смысл только если в ней реально работают люди. Если нет – воронка внутри системы дешевле и ведёт заказ целиком.</span></li>'+
+    '</ul>' :
+    '<p class="hint">Подключение есть, сделки не создаются. Запустите диагностику – покажу, где обрыв.</p>';
+  var cards = [
+    {n:"WhatsApp Business", s:"ok", d:"Wazzup, номер +7 727 350 90 10. Входящие идут в воронку."},
+    {n:"Kaspi", s:"warn", d:"Счета выставляются ссылкой. Автоподтверждение оплаты – после доступа к API, пока менеджер подтверждает кнопкой."},
+    {n:"Яндекс Доставка", s:"ok", d:"Заявка и трек по API. Алкоголь курьер не возит – пиво только самовывозом."},
+    {n:"Весы с печатью этикетки", s:"warn", d:"Не подключены. Пока вес вносится руками, риск опечаток."},
+    {n:"AmoCRM", s:"hot", d:"Подключена, сделки не создаются."}
+  ].map(function(c){
+    return '<div class="layer"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><b>'+esc(c.n)+'</b><span class="chip '+c.s+'">'+({ok:"работает",warn:"частично",hot:"не работает"}[c.s])+'</span></div><span class="sub">'+esc(c.d)+'</span>'+
+      '<div class="row-btns" style="margin-top:9px"><button type="button" class="btn small" data-check="'+esc(c.n)+'">Проверить связь</button></div></div>';
+  }).join("");
+  return '<div class="head"><div><h1>Интеграции</h1><p class="lede">Что подключено, что работает наполовину и что надо решить до запуска.</p></div></div>'+
+  '<div class="two"><div class="stack">'+
+    '<section class="panel"><header><h2>Состояние</h2></header><div class="pad">'+cards+'</div></section>'+
+    '<section class="panel"><header><h2>AmoCRM · диагностика</h2><button type="button" class="btn small primary" id="amorun">Запустить</button></header><div class="pad">'+amo+'</div></section>'+
+    '<section class="panel"><header><h2>Что проверить у юриста и бухгалтера</h2></header><div class="pad"><ul class="plain">'+
+      '<li><time>алкоголь</time><span>Дистанционная продажа пива в Казахстане ограничена, Яндекс алкоголь не возит. Нужно решение до запуска витрины.</span></li>'+
+      '<li><time>документы</time><span>Ветеринарные сопроводительные, СНТ и ЭСФ – порядок подтверждает бухгалтер заказчика. Система хранит номера в карточке приёмки.</span></li>'+
+      '<li><time>Kaspi</time><span>Есть ли доступ к API или только обычный Kaspi Pay.</span></li>'+
+    '</ul></div></section>'+
+  '</div>'+agentPanel()+'</div>';
+}
+function bindIntegr(){
+  bindAgent();
+  var b = document.getElementById("amorun");
+  if(b) b.addEventListener("click", function(){
+    S.amo.diagnosed = true;
+    agentSay("Диагностика AmoCRM: связь есть, сделки создаются, но в воронку никто не заходит – 214 сделок без движения. Переписка не подтягивается, полей под вес и партию нет.", "alert", "AmoCRM");
+    render();
+  });
+}
+
+/* ============ рендер и таймер ============ */
+var VIEWS = {
+  overview:[viewOverview, bindOverview],
+  chat:[viewChat, bindChat],
+  shop:[viewShop, bindShop],
+  orders:[viewOrders, bindOrders],
+  scale:[viewScale, bindScale],
+  warehouse:[viewWarehouse, bindWarehouse],
+  clients:[viewClients, bindClients],
+  marketing:[viewMarketing, bindMarketing],
+  points:[viewPoints, bindPoints],
+  arch:[viewArch, function(){}],
+  quest:[viewQuest, bindQuest],
+  integr:[viewIntegr, bindIntegr]
+};
+function render(){
+  var v = VIEWS[S.view] || VIEWS.overview;
+  var root = document.getElementById("view");
+  root.innerHTML = v[0]();
+  renderNav();
+  v[1]();
+  bindGlobal(root);
+  window.scrollTo(0, 0);
+}
+function bindGlobal(root){
+  Array.prototype.forEach.call(root.querySelectorAll("[data-go]"), function(el){
+    el.style.cursor = "pointer";
+    el.addEventListener("click", function(e){
+      e.stopPropagation();
+      var pt = el.getAttribute("data-point");
+      if(pt) S.point = pt;
+      S.view = el.getAttribute("data-go");
+      render();
+    });
+  });
+  Array.prototype.forEach.call(root.querySelectorAll("[data-promo]"), function(el){
+    el.addEventListener("click", function(e){
+      e.stopPropagation();
+      var b = batch(el.getAttribute("data-promo"));
+      if(!b) return;
+      var g = good(b.good), price = Math.round(g.price*0.8);
+      b.promo = price;
+      S.campaigns.unshift({t:"19.09", name:g.name+" минус 20 процентов", seg:"покупали рыбу",
+        sent:S.clients.length, opened:Math.round(S.clients.length*0.78), orders:Math.max(1,Math.round(S.clients.length*0.11)), revenue:Math.round(b.left*price)});
+      agentSay("Акция запущена: "+g.name+" по "+money(price)+" вместо "+money(g.price)+". Остаток партии "+b.id+" – "+kg(b.left,g.unit)+", рассылка ушла по сегменту.", "good", "Акция");
+      render();
+    });
+  });
+  Array.prototype.forEach.call(root.querySelectorAll("[data-check]"), function(el){
+    el.addEventListener("click", function(e){
+      e.stopPropagation();
+      var name = el.getAttribute("data-check");
+      var res = {
+        "WhatsApp Business":["good","Wazzup отвечает, номер активен. За сутки 34 входящих, все в воронке."],
+        "Kaspi":["alert","Счета выставляются, автоподтверждение оплаты недоступно – нет доступа к API. Менеджер подтверждает кнопкой."],
+        "Яндекс Доставка":["good","API отвечает, за сутки 12 заявок. Алкоголь в заявку не проходит – ограничение сервиса."],
+        "Весы с печатью этикетки":["alert","Весы не подключены. Вес вносится руками – риск опечаток в килограммах."],
+        "AmoCRM":["alert","Связь есть, сделки создаются, но в воронку никто не заходит. Подробнее – кнопка диагностики ниже."]
+      }[name] || ["","Проверка выполнена."];
+      agentSay(res[1], res[0], name);
+      render();
+    });
+  });
+}
+setInterval(function(){
+  var changed = false;
+  S.orders.forEach(function(o){
+    if((o.status === "invoice" || o.status === "collecting") && o.reserve > 0){
+      o.reserve -= 20;
+      if(o.reserve <= 600 && !o.reminded){
+        o.reminded = true;
+        agentSay("Заказ №"+o.id+": до снятия резерва 10 минут. Напоминание об оплате отправлено.", "alert", "Напоминание");
+        changed = true;
+      }
+      if(o.reserve <= 0){
+        o.reserve = 0; o.status = "lost";
+        o.lines.forEach(function(l){
+          var list = fifo(l.good, o.point), b = list[0];
+          if(b) b.left += l.fact || l.qty;
+        });
+        agentSay("Заказ №"+o.id+" не оплачен вовремя. Резерв снят, товар вернулся в остаток, клиенту ушло сообщение.", "alert", "Таймер");
+        changed = true;
+      }
+      var el = document.querySelector('[data-timer="'+o.id+'"]');
+      if(el && !changed){
+        var m = Math.floor(o.reserve/60), s = o.reserve%60;
+        el.textContent = (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+        el.className = "timer" + (o.reserve <= 600 ? " low" : "");
+      }
+    }
+  });
+  if(changed) render();
+}, 1000);
+
+agentSay("Смена открыта. Остаток по точке "+money(stockValue("alm1"))+", в работе "+S.orders.length+" заказа.", "", "Старт");
+agentSay("Партия П-1049 лещ х/к, 3,20 кг, срок через 5 дней. Предлагаю акцию минус 20 процентов – маржа останется 18 процентов.", "alert", "Сроки");
+render();
+})();
+</script>
+
+</body>
+</html>
