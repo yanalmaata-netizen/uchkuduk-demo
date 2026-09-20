@@ -48,6 +48,9 @@
   .num{font-family:"JetBrains Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums;}
   .tag{font:600 10.5px/1.4 "Golos Text",sans-serif; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);}
 
+  .demobar{position:sticky; top:0; z-index:20; background:var(--copper); color:#FFFFFF; padding:9px 16px; padding-top:calc(9px + env(safe-area-inset-top,0px));
+    font:600 12.5px/1.35 "Golos Text",sans-serif; display:flex; flex-wrap:wrap; gap:6px 14px; justify-content:center; text-align:center;}
+  .demobar span{opacity:.88; font-weight:500;}
   .shell{display:grid; grid-template-columns:238px minmax(0,1fr); min-height:100%;}
   .shell > *{min-width:0; max-width:100%;}
   main{width:100%;}
@@ -203,6 +206,7 @@
   @keyframes rise{from{opacity:.4; transform:translateY(4px);} to{opacity:1; transform:none;}}
 </style>
 
+<div class="demobar">Демонстрационная версия<span>Цены, остатки, клиенты и заказы вымышленные. Kaspi, Яндекс и WhatsApp имитируются.</span></div>
 <div class="shell">
   <nav class="nav">
     <div class="brand"><b>Уч Кудук</b><span>контур</span></div>
@@ -407,12 +411,14 @@ function agentPanel(){
     '<div class="feed" id="feed">'+feed+'</div>'+
     '<div class="pad" style="display:flex;flex-direction:column;gap:8px">'+
     '<div class="asks">'+
-      '<button type="button" data-q="остатки">Остатки</button>'+
+      '<button type="button" data-q="сводка по смене">Сводка</button>'+
+      '<button type="button" data-q="сколько судака">Судак</button>'+
+      '<button type="button" data-q="что горит по срокам">Сроки</button>'+
       '<button type="button" data-q="потери">Потери</button>'+
-      '<button type="button" data-q="сроки">Сроки</button>'+
-      '<button type="button" data-q="маржа">Маржа</button>'+
-      '<button type="button" data-q="лиды">Лиды</button>'+
-      '<button type="button" data-q="выход">Выход цеха</button>'+
+      '<button type="button" data-q="маржа по партиям">Маржа</button>'+
+      '<button type="button" data-q="заказы в работе">Заказы</button>'+
+      '<button type="button" data-q="что по сети">Сеть</button>'+
+      '<button type="button" data-q="что ты умеешь">Что умеешь</button>'+
     '</div>'+
     '<div class="askrow"><input id="askinput" placeholder="Спросить про смену" aria-label="Вопрос агенту"><button type="button" class="btn small" id="asksend">Спросить</button></div>'+
     '<p class="hint">Агент считает по текущим документам. В рабочей системе сюда встаёт ваш агент с доступом к базе.</p></div></section>';
@@ -432,47 +438,200 @@ function bindAgent(){
   if(inp) inp.addEventListener("keydown", function(e){ if(e.key==="Enter") send(inp.value.trim()); });
 }
 function answer(q){
-  q = (q||"").toLowerCase();
-  if(q.indexOf("остат")>=0 || q.indexOf("склад")>=0){
+  var raw = (q||"").trim();
+  q = raw.toLowerCase().replace(/ё/g,"е");
+  if(!q) q = "сводка";
+
+  /* --- кого и что спрашивают --- */
+  var GKEYS = {sudak:["судак","коксерке"], leshch:["лещ сырец","сырец"], leshch_s:["лещ","табан","копчен"],
+               skumbr:["скумбр","макрел"], vobla:["вобл","тарань"], beer:["пив","сыра","разлив"]};
+  var gFound = null;
+  Object.keys(GKEYS).forEach(function(id){
+    GKEYS[id].forEach(function(k){ if(!gFound && q.indexOf(k)>=0) gFound = good(id); });
+  });
+  var PKEYS = {alm1:["жароков","жарокова","центральн"], kask:["каскелен","жангозин"], tuzd:["туздыбастау","дюсебаев"],
+               seif:["сейфуллин"], ainb:["айнабулак"], asta:["астан","бектуров"], navo:["навои","науаи"]};
+  var pFound = null;
+  Object.keys(PKEYS).forEach(function(id){
+    PKEYS[id].forEach(function(k){ if(!pFound && q.indexOf(k)>=0) pFound = point(id); });
+  });
+  var pid = pFound ? pFound.id : S.point;
+  var bm = raw.match(/[ПпPp]\s?-?\s?(\d{3,4})/);
+  var bFound = bm ? batch("П-"+bm[1]) : null;
+  var om = raw.match(/№?\s?(4\d{3})/);
+  var oFound = null;
+  if(om) S.orders.forEach(function(o){ if(o.id === om[1]) oFound = o; });
+  var cFound = null;
+  S.clients.forEach(function(c){
+    c.name.toLowerCase().split(/[\s«»"]+/).forEach(function(w){
+      if(w.length > 3 && q.indexOf(w.replace(/ё/g,"е")) >= 0) cFound = c;
+    });
+  });
+
+  var has = function(){ for(var i=0;i<arguments.length;i++) if(q.indexOf(arguments[i])>=0) return true; return false; };
+
+  /* --- конкретная партия --- */
+  if(bFound){
+    var bg = good(bFound.good), d = daysLeft(bFound), sold = 0;
+    S.moves.forEach(function(m){ if(m.batch===bFound.id && m.type==="Продажа") sold += -m.qty; });
+    return bFound.id+" – "+bg.name+". Поставщик "+bFound.supplier+", накладная "+bFound.inv+" от "+bFound.date+
+      ". Принято "+kg(bFound.in,bg.unit)+", осталось "+kg(bFound.left,bg.unit)+
+      ". Себестоимость "+money(bFound.cost)+" за "+bg.unit+", остаток на "+money(bFound.left*bFound.cost)+
+      ". Срок "+(d<=0?"вышел":"через "+d+" дн.")+
+      (sold>0 ? ". Продано "+kg(sold,bg.unit)+", маржа "+money(sold*(bg.price-bFound.cost)) : "")+
+      (bFound.promo ? ". Стоит акция "+money(bFound.promo) : "");
+  }
+
+  /* --- конкретный заказ --- */
+  if(oFound){
+    var oc = client(oFound.client);
+    var lines = oFound.lines.map(function(l){ return good(l.good).name+" "+kg(l.fact||l.qty, good(l.good).unit)+(l.fact?" факт":" заказано"); }).join(", ");
+    return "Заказ №"+oFound.id+", "+(oc?oc.name:"гость")+", "+point(oFound.point).name+". Статус: "+statusName(oFound.status)+
+      ". Состав: "+lines+(oFound.sum?". Сумма "+money(oFound.sum):"")+
+      (oFound.reserve>0 ? ". До снятия резерва "+Math.floor(oFound.reserve/60)+" мин." : "")+
+      (oFound.track ? ". "+oFound.track : "");
+  }
+
+  /* --- конкретный клиент --- */
+  if(cFound && !has("сколько всего","скольким")){
+    var co = S.orders.filter(function(o){ return o.client === cFound.id; });
+    return cFound.name+": "+cFound.phone+", "+cFound.city+", язык "+cFound.lang+", точка "+point(cFound.point).name+
+      ". Заказов "+cFound.orders+" на "+money(cFound.sum)+", последний "+cFound.last+
+      ". Берёт: "+cFound.tags.join(", ")+". Адреса: "+cFound.addr.join("; ")+
+      (co.length ? ". Сейчас в работе: "+co.map(function(o){ return "№"+o.id+" ("+statusName(o.status)+")"; }).join(", ") : ". Открытых заказов нет.");
+  }
+
+  /* --- алкоголь и доставка --- */
+  if(gFound && gFound.id === "beer" && has("доставк","курьер","яндекс","везти","возит","алкогол")){
+    return "Пиво на доставку – открытый вопрос. Дистанционная продажа алкоголя в Казахстане ограничена, Яндекс алкоголь не возит. До запуска витрины нужно решение юриста: либо самовывоз, либо доставка силами точки. Вопрос вынесен в раздел «Открытые вопросы».";
+  }
+
+  /* --- конкретный товар --- */
+  if(gFound){
+    var st = stockOf(gFound.id, pid), list = fifo(gFound.id, pid);
+    if(has("цена","стоит","почем","почём","прайс")){
+      return gFound.name+" – "+(gFound.price ? money(gFound.price)+" за "+gFound.unit : "розничной цены нет, это сырьё для цеха")+
+        (list.length ? ". Себестоимость ближайшей партии "+money(list[0].cost)+", маржа "+pctS(gFound.price?(gFound.price-list[0].cost)/gFound.price*100:0) : "")+
+        ". Цены в демо условные.";
+    }
+    if(has("срок","годност","испорт")){
+      if(!list.length) return gFound.name+" на этой точке закончился.";
+      return list.map(function(b){ return b.id+" – "+kg(b.left,gFound.unit)+", срок "+(daysLeft(b)<=0?"вышел":"через "+daysLeft(b)+" дн"); }).join(". ");
+    }
+    if(has("продал","продаж","ушло","выруч")){
+      var sq = 0, rev = 0;
+      S.moves.forEach(function(m){ if(m.good===gFound.id && m.type==="Продажа" && m.point===pid){ sq += -m.qty; rev += -m.qty*gFound.price; } });
+      return sq ? gFound.name+": продано "+kg(sq,gFound.unit)+" на "+money(rev)+" по точке "+point(pid).name+"." : "Продаж по позиции "+gFound.name+" на этой точке нет.";
+    }
+    if(st <= 0.001) return gFound.name+" – на точке "+point(pid).name+" нет в наличии. Есть на других: "+
+      (POINTS.filter(function(x){ return stockOf(gFound.id, x.id) > 0.001; }).map(function(x){ return x.name+" ("+kg(stockOf(gFound.id,x.id),gFound.unit)+")"; }).join(", ") || "нигде нет");
+    return gFound.name+" на точке "+point(pid).name+": "+kg(st,gFound.unit)+" в "+list.length+" партиях"+
+      (gFound.price ? ", цена "+money(gFound.price)+" за "+gFound.unit : "")+
+      ". Ближайший срок – "+(list.length ? (daysLeft(list[0])<=0?"вышел":daysLeft(list[0])+" дн") : "нет")+".";
+  }
+
+  /* --- темы --- */
+  if(has("остат","склад","наличи","есть ли","что есть")){
     var parts = [];
-    GOODS.forEach(function(g){ var s = stockOf(g.id); if(s>0.001) parts.push(g.name+" – "+kg(s,g.unit)); });
-    return point(S.point).name+": "+parts.join("; ")+". Итого "+money(stockValue())+" по себестоимости.";
+    GOODS.forEach(function(g){ var s2 = stockOf(g.id, pid); if(s2>0.001) parts.push(g.name+" – "+kg(s2,g.unit)); });
+    return point(pid).name+": "+(parts.join("; ") || "пусто")+". Итого "+money(stockValue(pid))+" по себестоимости.";
   }
-  if(q.indexOf("потер")>=0 || q.indexOf("списан")>=0){
-    var l = lossStats(S.point);
-    return "Приход "+kg(l.in)+", потери "+kg(l.loss)+" – это "+pctS(l.pct)+" при норме "+pctS(LOSS_NORM)+". "+(l.pct>LOSS_NORM?"Выше нормы, основной вклад дала переработка.":"В норме.");
+  if(has("потер","списан","усушк","недостач")){
+    var l = lossStats(pid);
+    return "По точке "+point(pid).name+": приход "+kg(l.in)+", потери "+kg(l.loss)+" – "+pctS(l.pct)+" при норме "+pctS(LOSS_NORM)+". "+
+      (l.pct>LOSS_NORM?"Выше нормы, основной вклад дала переработка леща.":"В норме.");
   }
-  if(q.indexOf("срок")>=0 || q.indexOf("испорт")>=0){
-    var soon = livePoint(S.point).filter(function(b){ return daysLeft(b)<=6; });
-    if(!soon.length) return "Ближайшую неделю ничего не истекает.";
-    return soon.map(function(b){ return b.id+" "+good(b.good).name+", "+kg(b.left)+", "+(daysLeft(b)<=0?"срок вышел":"осталось "+daysLeft(b)+" дн."); }).join(". ")+". Предлагаю акцию минус 20 процентов.";
+  if(has("срок","испорт","годност","протух","горит")){
+    var soon = livePoint(pid).filter(function(b){ return daysLeft(b)<=6; });
+    if(!soon.length) return "На точке "+point(pid).name+" ближайшую неделю ничего не истекает.";
+    return soon.map(function(b){ return b.id+" "+good(b.good).name+", "+kg(b.left,good(b.good).unit)+", "+(daysLeft(b)<=0?"срок вышел":"осталось "+daysLeft(b)+" дн"); }).join(". ")+
+      ". Предлагаю акцию минус 20 процентов – маржа остаётся положительной.";
   }
-  if(q.indexOf("маржа")>=0 || q.indexOf("прибыл")>=0){
+  if(has("маржа","прибыл","зарабо","наценк","себестоим")){
     var rows = [];
     S.batches.forEach(function(b){
-      if(b.point !== S.point) return;
-      var g = good(b.good); if(!g.price) return;
-      var sold = 0;
-      S.moves.forEach(function(m){ if(m.batch===b.id && m.type==="Продажа") sold += -m.qty; });
-      if(sold<=0) return;
-      rows.push(b.id+" "+g.name+": продано "+kg(sold,g.unit)+", маржа "+money(sold*(g.price-b.cost)));
+      if(b.point !== pid) return;
+      var g2 = good(b.good); if(!g2.price) return;
+      var sold2 = 0;
+      S.moves.forEach(function(m){ if(m.batch===b.id && m.type==="Продажа") sold2 += -m.qty; });
+      if(sold2<=0) return;
+      rows.push(b.id+" "+g2.name+": продано "+kg(sold2,g2.unit)+", маржа "+money(sold2*(g2.price-b.cost))+" ("+pctS((g2.price-b.cost)/g2.price*100)+")");
     });
-    return rows.length ? rows.join(". ")+"." : "Продаж по партиям этой точки пока нет.";
+    return rows.length ? rows.join(". ")+"." : "Продаж по партиям точки "+point(pid).name+" пока нет.";
   }
-  if(q.indexOf("лид")>=0 || q.indexOf("заказ")>=0){
+  if(has("выруч","оборот","касса","сколько продали")){
+    var rev2 = 0, cnt = 0;
+    S.orders.forEach(function(o){ if(o.status==="paid"||o.status==="delivery"||o.status==="done"){ rev2 += o.sum || orderSum(o); cnt++; } });
+    return "Оплачено "+cnt+" заказов на "+money(rev2)+". Средний чек "+(cnt?money(rev2/cnt):"–")+".";
+  }
+  if(has("лид","заказ","воронк","в работе")){
     var open = S.orders.filter(function(o){ return o.status!=="done" && o.status!=="lost"; });
-    return "В работе "+open.length+" заказов. "+open.map(function(o){ return "№"+o.id+" – "+statusName(o.status); }).join(", ")+".";
+    if(!open.length) return "Открытых заказов нет.";
+    return "В работе "+open.length+": "+open.map(function(o){ var c2 = client(o.client); return "№"+o.id+" "+(c2?c2.name:"гость")+" – "+statusName(o.status); }).join(", ")+".";
   }
-  if(q.indexOf("выход")>=0 || q.indexOf("цех")>=0){
+  if(has("выход","цех","переработ","коптил","вялил")){
     var y = S.yields[S.yields.length-1], norm = good(y.good).norm || 58;
-    return "Последний акт "+y.date+": выход "+pctS(y.pct)+" при норме "+pctS(norm)+". "+(y.pct<norm-3?"Отклонение вниз – стоит проверить смену.":"В допуске.");
+    return "Последний акт "+y.date+": выход "+pctS(y.pct)+" при норме "+pctS(norm)+". "+
+      (y.pct<norm-3?"Отклонение вниз – либо сырьё хуже, либо часть ушла мимо учёта. Стоит проверить смену.":"В допуске.");
   }
-  if(q.indexOf("сводк")>=0 || q.indexOf("как дела")>=0 || q.indexOf("смена")>=0){
-    var l2 = lossStats(S.point), op = S.orders.filter(function(o){ return o.status!=="done" && o.status!=="lost"; });
-    var soon2 = livePoint(S.point).filter(function(b){ return daysLeft(b)<=6; });
-    return point(S.point).name+": остаток "+money(stockValue(S.point))+", в работе "+op.length+" заказов, потери "+pctS(l2.pct)+" при норме "+pctS(LOSS_NORM)+", партий на исходе срока – "+soon2.length+".";
+  if(has("клиент","база","кто покупа","постоянн")){
+    var top = S.clients.slice().sort(function(a,b){ return b.sum - a.sum; })[0];
+    return "В базе "+S.clients.length+" карточек. Крупнейший – "+top.name+", "+top.orders+" заказов на "+money(top.sum)+
+      ". Языки: "+S.clients.map(function(c){ return c.lang; }).filter(function(v,i,a){ return a.indexOf(v)===i; }).join(", ")+".";
   }
-  return "Такого разреза в демо нет. Спросите про остатки, потери, сроки, маржу, лиды, выход цеха или сводку по смене.";
+  if(has("точк","франшиз","сет","филиал")){
+    var own = POINTS.filter(function(x){ return x.type==="own"; }).length;
+    var tot = 0; POINTS.forEach(function(x){ tot += stockValue(x.id); });
+    return "В сети "+POINTS.length+" точек: "+own+" свои, "+(POINTS.length-own)+" франшизы. Общий остаток "+money(tot)+
+      ". "+POINTS.map(function(x){ return x.name+" – "+money(stockValue(x.id)); }).join("; ")+".";
+  }
+  if(has("вес","развес","допуск","весы","взвеш")){
+    return "Рыба весовая. Заказ резервирует примерный вес, счёт выставляется по факту весов. Допуск ±"+TOLERANCE+
+      " процентов – за его пределами агент спрашивает клиента до оплаты. Раздел «Весовая станция».";
+  }
+  if(has("оплат","kaspi","каспи","счет","счёт","деньг")){
+    return "Счёт уходит ссылкой Kaspi сразу после взвешивания. Резерв держится 30 минут, за 10 минут до конца уходит напоминание. Автоподтверждение оплаты – после доступа к API Kaspi, пока менеджер подтверждает кнопкой.";
+  }
+  if(has("доставк","курьер","яндекс")){
+    return "После оплаты заявка уходит в Яндекс Доставку, клиент получает трек. Доставка "+money(DELIVERY)+
+      ". Алкоголь курьер не возит – по пиву нужно отдельное решение.";
+  }
+  if(has("стоп","зашив","загруз","перегруз")){
+    return "Стоп-приём "+(S.stop?"включён – агент закрывает новые заказы и переносит на завтра.":"выключен, приём открыт.")+
+      " Ночной режим "+(S.night?"включён: принимаются заказы от "+money(THRESHOLD)+".":"выключен.");
+  }
+  if(has("язык","казах","англ")){
+    return "Агент держит язык первого сообщения – русский, казахский или английский. Карточки товаров и шаблоны рассылок ведутся на трёх языках.";
+  }
+  if(has("рассылк","акци","скидк","промо")){
+    var last = S.campaigns[0];
+    return "Сегменты считаются из истории заказов. Последняя кампания: "+last.name+" – отправлено "+last.sent+", заказов "+last.orders+", выручка "+money(last.revenue)+".";
+  }
+  if(has("amo","crm","срм")){
+    return "AmoCRM подключена, но сделки лежат без движения – в воронку никто не заходит, переписка не подтягивается, полей под вес и партию нет. Решение: чинить, если в ней реально работают люди, иначе вести воронку здесь.";
+  }
+  if(has("накладн","приемк","приёмк","поставщик","расхожден")){
+    return "Приёмка идёт по своим весам: брутто минус тара. Расхождение с накладной больше 1 процента – система оформляет акт и уведомляет поставщика. Номера ветеринарных документов, СНТ и ЭСФ хранятся в карточке приёмки.";
+  }
+  if(has("инвентар","пересчет","пересчёт","сверк")){
+    return "Инвентаризация сравнивает факт с учётом. Расхождение вешается на смену с ответственным – в килограммах и в тенге по себестоимости партии.";
+  }
+  if(has("сколько стоит","цена внедрен","бюджет","сроки внедрен")){
+    return "Стоимость и сроки в демо не заложены – это предмет договора. В разделе «Открытые вопросы» собрано то, что нужно решить до расчёта.";
+  }
+  if(has("что ты умеешь","помощь","подскаж","что можешь","умеешь")){
+    return "Спрашивайте про остатки и цены по любому товару, партию по номеру, заказ по номеру, клиента по имени, точку по названию, потери, сроки, маржу, выручку, выход цеха, доставку, оплату, рассылки, стоп-приём. Считаю по текущим данным демо.";
+  }
+  if(has("сводк","как дела","смена","итог")){
+    var l3 = lossStats(pid), op3 = S.orders.filter(function(o){ return o.status!=="done" && o.status!=="lost"; });
+    var soon3 = livePoint(pid).filter(function(b){ return daysLeft(b)<=6; });
+    return point(pid).name+": остаток "+money(stockValue(pid))+", в работе "+op3.length+" заказов, потери "+pctS(l3.pct)+
+      " при норме "+pctS(LOSS_NORM)+", партий на исходе срока – "+soon3.length+".";
+  }
+  if(has("привет","салем","здравств","сәлем")){
+    return "На связи. Спросите про остатки, конкретный товар, партию, заказ, клиента или точку.";
+  }
+  return "Это демо-агент: он считает по данным этой демонстрации, а не по живой базе. Могу ответить про остатки и цены любого товара, партию по номеру, заказ, клиента, точку, потери, сроки, маржу, выручку, выход цеха, доставку и оплату. В рабочей версии на это место ставится ваш агент с доступом к настоящей базе – тогда вопросы любые.";
 }
 function statusName(s){
   return {new:"Новый лид", collecting:"Сборка", invoice:"Счёт выставлен", paid:"Оплачен", delivery:"Доставка", done:"Закрыт", lost:"Отвалился"}[s] || s;
