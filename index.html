@@ -230,12 +230,7 @@ var LOSS_NORM = 4.0, THRESHOLD = 30000, DELIVERY = 1490, TOLERANCE = 10;
 
 var POINTS = [
   {id:"alm1", name:"Алматы, Жарокова 124", type:"own", manager:"Асхат", phone:"+7 706 659-77-77", hours:"10:00 – 23:00", ig:"uchkuduk_fish"},
-  {id:"kask", name:"Каскелен, Жангозина 7а", type:"own", manager:"Мурат", phone:"+7 707 663-08-76", hours:"10:00 – 23:00", ig:"uchkuduk_fish"},
-  {id:"tuzd", name:"Туздыбастау, Дюсебаева 2/1", type:"franchise", manager:"Данияр", phone:"–", hours:"11:00 – 23:00", ig:"uchkuduk_fish_tuzdybastau"},
-  {id:"seif", name:"Алматы, Сейфуллина 452", type:"franchise", manager:"Ерлан", phone:"–", hours:"10:00 – 23:00", ig:"uchkuduk_fish_seifullina"},
-  {id:"ainb", name:"Алматы, Айнабулак 2, 84б", type:"franchise", manager:"Сабит", phone:"–", hours:"10:00 – 23:00", ig:"uchkuduk_fish_ainabulak"},
-  {id:"asta", name:"Астана, Бектурова 3, ЖК Bi City Seoul", type:"franchise", manager:"Нурлан", phone:"+7 701 566-97-68", hours:"10:00 – 23:00", ig:"uchkuduk_fish_astana"},
-  {id:"navo", name:"Навои 37, ЖК Науаи", type:"franchise", manager:"Алишер", phone:"+7 771 968-89-98", hours:"10:00 – 23:00", ig:"uchkuduk_fish_navoi"}
+  {id:"kask", name:"Каскелен, Жангозина 7а", type:"own", manager:"Мурат", phone:"+7 707 663-08-76", hours:"10:00 – 23:00", ig:"uchkuduk_fish"}
 ];
 
 var GOODS = [
@@ -264,15 +259,7 @@ var S = {
     {id:"П-1050", point:"alm1", good:"vobla",   in:18,  left:6.2,  cost:3050, supplier:"Арал Фиш",         inv:"8961", date:"11.09", exp:"10.11"},
     {id:"П-1053", point:"alm1", good:"beer",    in:60,  left:38,   cost:640,  supplier:"Пивзавод №1",      inv:"9022", date:"13.09", exp:"13.10"},
     {id:"П-1044", point:"kask", good:"sudak",   in:35,  left:12.0, cost:2180, supplier:"Балхаш-Рыба, ТОО", inv:"8858", date:"05.09", exp:"04.12"},
-    {id:"П-1054", point:"kask", good:"skumbr",  in:10,  left:6.4,  cost:2380, supplier:"Каспий Трейд",     inv:"9044", date:"15.09", exp:"05.10"},
-    {id:"П-1051", point:"tuzd", good:"vobla",   in:22,  left:14.5, cost:3120, supplier:"Арал Фиш",         inv:"8974", date:"12.09", exp:"11.11"},
-    {id:"П-1056", point:"tuzd", good:"sudak",   in:25,  left:18.0, cost:2510, supplier:"Каспий Трейд",     inv:"9031", date:"16.09", exp:"15.12"},
-    {id:"П-1057", point:"seif", good:"skumbr",  in:14,  left:9.6,  cost:2400, supplier:"Каспий Трейд",     inv:"9046", date:"16.09", exp:"06.10"},
-    {id:"П-1058", point:"seif", good:"beer",    in:40,  left:22,   cost:650,  supplier:"Пивзавод №1",      inv:"9039", date:"15.09", exp:"15.10"},
-    {id:"П-1059", point:"ainb", good:"vobla",   in:16,  left:11.3, cost:3090, supplier:"Арал Фиш",         inv:"8982", date:"14.09", exp:"13.11"},
-    {id:"П-1060", point:"asta", good:"sudak",   in:30,  left:21.5, cost:2560, supplier:"Каспий Трейд",     inv:"9052", date:"17.09", exp:"16.12"},
-    {id:"П-1061", point:"asta", good:"leshch_s",in:12,  left:5.4,  cost:2620, supplier:"своё производство",inv:"акт 9", date:"16.09", exp:"30.09"},
-    {id:"П-1062", point:"navo", good:"skumbr",  in:11,  left:7.8,  cost:2420, supplier:"Каспий Трейд",     inv:"9048", date:"16.09", exp:"06.10"}
+    {id:"П-1054", point:"kask", good:"skumbr",  in:10,  left:6.4,  cost:2380, supplier:"Каспий Трейд",     inv:"9044", date:"15.09", exp:"05.10"}
   ],
   moves:[
     {t:"09:14 03.09", point:"alm1", type:"Приёмка", good:"sudak", batch:"П-1041", qty:60, who:"Асхат"},
@@ -297,7 +284,7 @@ var S = {
      addr:["Тимирязева 42, кв. 88"], orders:3, sum:41200, last:"02.09", tags:["вобла"]},
     {id:3, name:"Ресторан «Достар»", phone:"+7 727 350 90 10", city:"Алматы", lang:"Русский", point:"kask",
      addr:["Жандосова 6, служебный вход"], orders:19, sum:864000, last:"18.09", tags:["опт","судак"]},
-    {id:4, name:"Данияр Ахметов", phone:"+7 747 300 41 77", city:"Каскелен", лang:"", lang:"Казахский", point:"tuzd",
+    {id:4, name:"Данияр Ахметов", phone:"+7 747 300 41 77", city:"Каскелен", лang:"", lang:"Казахский", point:"kask",
      addr:["Тауке хана 21"], orders:2, sum:18600, last:"11.08", tags:["пиво"]},
     {id:5, name:"Marat Iskakov", phone:"+7 708 119 04 26", city:"Алматы", lang:"English", point:"alm1",
      addr:["Достык 240, кв. 5"], orders:5, sum:76300, last:"14.09", tags:["скумбрия"]}
@@ -308,7 +295,9 @@ var S = {
     {id:"4416", point:"kask", client:5, source:"shop", status:"paid", sum:22860, created:"10:05",
      lines:[{good:"skumbr", qty:3.2, fact:3.28},{good:"beer", qty:5, fact:5}]},
     {id:"4417", point:"alm1", client:2, source:"lead", status:"new", sum:0, created:"10:48",
-     lines:[{good:"vobla", qty:2}]}
+     lines:[{good:"vobla", qty:2}]},
+    {id:"4418", point:"alm1", client:1, source:"whatsapp", status:"collecting", sum:0, created:"11:02", reserve:26*60,
+     lines:[{good:"sudak", qty:3},{good:"vobla", qty:1.5},{good:"beer", qty:5}]}
   ],
   campaigns:[{t:"12.09", name:"Свежий судак, четверг", seg:"покупали рыбу", sent:214, opened:171, orders:23, revenue:412000}],
   leadLog:[
@@ -371,7 +360,6 @@ var NAV = [
   {g:1, id:"marketing", t:"Рассылки",      n:"акции"},
   {g:2, id:"warehouse", t:"Склад и партии",n:"вес"},
   {g:2, id:"clients",   t:"Клиенты",       n:"база"},
-  {g:2, id:"points",    t:"Точки и франшизы", n:"сеть"},
   {g:3, id:"arch",      t:"Архитектура",   n:"схема"},
   {g:3, id:"quest",     t:"Открытые вопросы", n:"до старта"},
   {g:3, id:"integr",    t:"Интеграции",    n:"kaspi, amo"}
@@ -449,8 +437,7 @@ function answer(q){
   Object.keys(GKEYS).forEach(function(id){
     GKEYS[id].forEach(function(k){ if(!gFound && q.indexOf(k)>=0) gFound = good(id); });
   });
-  var PKEYS = {alm1:["жароков","жарокова","центральн"], kask:["каскелен","жангозин"], tuzd:["туздыбастау","дюсебаев"],
-               seif:["сейфуллин"], ainb:["айнабулак"], asta:["астан","бектуров"], navo:["навои","науаи"]};
+  var PKEYS = {alm1:["жароков","жарокова","алматы"], kask:["каскелен","жангозин"]};
   var pFound = null;
   Object.keys(PKEYS).forEach(function(id){
     PKEYS[id].forEach(function(k){ if(!pFound && q.indexOf(k)>=0) pFound = point(id); });
@@ -579,11 +566,10 @@ function answer(q){
     return "В базе "+S.clients.length+" карточек. Крупнейший – "+top.name+", "+top.orders+" заказов на "+money(top.sum)+
       ". Языки: "+S.clients.map(function(c){ return c.lang; }).filter(function(v,i,a){ return a.indexOf(v)===i; }).join(", ")+".";
   }
-  if(has("точк","франшиз","сет","филиал")){
-    var own = POINTS.filter(function(x){ return x.type==="own"; }).length;
+  if(has("точк","сет","филиал")){
     var tot = 0; POINTS.forEach(function(x){ tot += stockValue(x.id); });
-    return "В сети "+POINTS.length+" точек: "+own+" свои, "+(POINTS.length-own)+" франшизы. Общий остаток "+money(tot)+
-      ". "+POINTS.map(function(x){ return x.name+" – "+money(stockValue(x.id)); }).join("; ")+".";
+    return "Точек в демо "+POINTS.length+", общий остаток "+money(tot)+". "+
+      POINTS.map(function(x){ return x.name+" – "+money(stockValue(x.id))+", "+x.hours; }).join("; ")+".";
   }
   if(has("вес","развес","допуск","весы","взвеш")){
     return "Рыба весовая. Заказ резервирует примерный вес, счёт выставляется по факту весов. Допуск ±"+TOLERANCE+
@@ -620,7 +606,7 @@ function answer(q){
     return "Стоимость и сроки в демо не заложены – это предмет договора. В разделе «Открытые вопросы» собрано то, что нужно решить до расчёта.";
   }
   if(has("что ты умеешь","помощь","подскаж","что можешь","умеешь")){
-    return "Спрашивайте про остатки и цены по любому товару, партию по номеру, заказ по номеру, клиента по имени, точку по названию, потери, сроки, маржу, выручку, выход цеха, доставку, оплату, рассылки, стоп-приём. Считаю по текущим данным демо.";
+    return "Спрашивайте про остатки и цены по любому товару, партию по номеру, заказ по номеру, клиента по имени, потери, сроки, маржу, выручку, выход цеха, доставку, оплату, рассылки, стоп-приём. Считаю по текущим данным демо.";
   }
   if(has("сводк","как дела","смена","итог")){
     var l3 = lossStats(pid), op3 = S.orders.filter(function(o){ return o.status!=="done" && o.status!=="lost"; });
@@ -946,7 +932,9 @@ function viewScale(){
   var head = '<div class="head"><div><h1>Весовая станция</h1><p class="lede">Рыба продаётся на развес, поэтому в заказе два числа: сколько просил клиент и сколько легло на весы. Счёт выставляется только по второму. Допуск ±'+TOLERANCE+' процентов – за его пределами нужно подтверждение клиента.</p></div></div>';
 
   if(!o){
-    return head + '<section class="panel"><div class="pad"><p class="hint">Сейчас нет заказов на сборке. Создайте заказ в разделе «WhatsApp-агент» или на витрине – он придёт сюда.</p></div></section>';
+    return head + '<section class="panel"><div class="pad stack"><p class="hint">Сейчас нет заказов на сборке. Заказы приходят сюда из WhatsApp и с витрины.</p>'+
+      '<div class="row-btns"><button type="button" class="btn cta" id="scale-demo">Создать заказ для примера</button>'+
+      '<button type="button" class="btn" data-go="shop">Открыть витрину</button></div></div></section>';
   }
 
   var sel = list.map(function(x){
@@ -1003,6 +991,16 @@ function costOf(gid, qty, pid){
 }
 function bindScale(){
   bindAgent();
+  var demo = document.getElementById("scale-demo");
+  if(demo) demo.addEventListener("click", function(){
+    S.seqO++;
+    var o2 = {id:String(S.seqO), point:S.point, client:1, source:"whatsapp", status:"collecting", created:stamp(),
+      lines:[{good:"sudak", qty:2},{good:"beer", qty:5}], reserve:30*60, sum:0};
+    o2.sum = orderSum(o2);
+    S.orders.unshift(o2); reserveStock(o2); S.scaleOrder = o2.id;
+    agentSay("Заказ №"+o2.id+" создан для примера. Резерв 30 минут, ждёт взвешивания.", "", "Весовая");
+    render();
+  });
   var sel = document.getElementById("scale-order");
   if(sel) sel.addEventListener("change", function(){ S.scaleOrder = sel.value; render(); });
   var o = null;
@@ -1449,77 +1447,6 @@ function bindMarketing(){
   });
 }
 
-/* ============ ВИД: точки ============ */
-function viewPoints(){
-  var rows = POINTS.map(function(p){
-    var l = lossStats(p.id);
-    return '<tr><td><strong>'+esc(p.name)+'</strong><span class="sub">'+esc(p.phone)+' · '+esc(p.hours)+' · управляющий '+esc(p.manager)+'</span></td>'+
-      '<td><span class="chip '+(p.type==="own"?"teal":"warn")+'">'+(p.type==="own"?"своя точка":"франшиза")+'</span></td>'+
-      '<td class="r num">'+kg(livePoint(p.id).reduce(function(s,b){ return s+b.left; },0))+'<span class="sub num">'+money(stockValue(p.id))+'</span></td>'+
-      '<td class="r num">'+livePoint(p.id).length+'</td>'+
-      '<td class="r num">'+pctS(l.pct)+'</td>'+
-      '<td>'+(p.type==="own"?"Полный доступ, цены из головного прайса":"Видит только свои остатки и своих клиентов, цены меняет сама")+'<span class="sub">@'+esc(p.ig)+'</span></td>'+
-      '<td class="r"><div class="row-btns" style="justify-content:flex-end">'+
-      '<button type="button" class="btn small" data-go="warehouse" data-point="'+p.id+'">Склад</button>'+
-      '<button type="button" class="btn small" data-go="overview" data-point="'+p.id+'">Пульт</button>'+
-      '</div></td></tr>';
-  }).join("");
-  var fromOpts = POINTS.map(function(p){ return '<option value="'+p.id+'">'+esc(p.name)+'</option>'; }).join("");
-  var goodOpts = GOODS.map(function(g){ return '<option value="'+g.id+'">'+esc(g.name)+'</option>'; }).join("");
-  return '<div class="head"><div><h1>Точки и франшизы</h1><p class="lede">Две свои точки и пять франшиз в одной системе, но с разными правами. У каждой франшизы свой аккаунт и свои остатки. Товар между точками ходит документом – пока приёмку не подтвердили, он в пути и не продаётся нигде.</p></div></div>'+
-  '<div class="stack"><section class="panel"><header><h2>Сеть</h2><span class="tag">точек: '+POINTS.length+'</span></header>'+
-    '<div class="tablewrap"><table><thead><tr><th>Точка</th><th>Тип</th><th class="r">Остаток</th><th class="r">Партий</th><th class="r">Потери</th><th>Права</th><th class="r">Открыть</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>'+
-  '<div class="two"><section class="panel"><header><h2>Перемещение между точками</h2></header><div class="pad"><form class="grid" id="f-move">'+
-    '<label>Откуда<select id="m-from">'+fromOpts+'</select></label>'+
-    '<label>Куда<select id="m-to">'+fromOpts+'</select></label>'+
-    '<label>Товар<select id="m-good">'+goodOpts+'</select></label>'+
-    '<label>Отправлено, кг<input id="m-qty" type="number" step="0.01" value="12"></label>'+
-    '<label class="span2">Принято на месте, кг<input id="m-got" type="number" step="0.01" value="11.4"></label>'+
-    '<div class="span2 calc" id="m-calc"></div>'+
-    '<div class="span2"><button type="submit" class="btn primary">Провести перемещение</button></div>'+
-  '</form></div></section>'+agentPanel()+'</div></div>';
-}
-function bindPoints(){
-  bindAgent();
-  var to = document.getElementById("m-to"); if(to) to.value = "kask";
-  function calc(){
-    var box = document.getElementById("m-calc"); if(!box) return; box.innerHTML = "";
-    var sent = numOf("m-qty"), got = numOf("m-got"), diff = got - sent;
-    line(box, "Отправлено", kg(sent));
-    line(box, "Принято", kg(got));
-    line(box, "Расхождение", diff ? (diff>0?"+":"−")+kg(Math.abs(diff))+" · "+pctS(sent?Math.abs(diff)/sent*100:0) : "нет");
-    var h = document.createElement("div"); h.className = "hint";
-    h.textContent = diff < 0 ? "Недостача повиснет на том, кто принял." : "Расхождения нет – документ закроется сам.";
-    box.appendChild(h);
-  }
-  ["m-qty","m-got"].forEach(function(id){ var e = document.getElementById(id); if(e) e.addEventListener("input", calc); });
-  calc();
-  var f = document.getElementById("f-move");
-  if(f) f.addEventListener("submit", function(e){
-    e.preventDefault();
-    var from = document.getElementById("m-from").value, toP = document.getElementById("m-to").value;
-    var gid = document.getElementById("m-good").value, g = good(gid);
-    var sent = numOf("m-qty"), got = numOf("m-got");
-    if(from === toP){ agentSay("Откуда и куда – одна и та же точка.", "alert", "Перемещение"); render(); return; }
-    if(sent > stockOf(gid, from) + 0.001){ agentSay("На точке «"+point(from).name+"» только "+kg(stockOf(gid,from),g.unit)+".", "alert", "Перемещение"); render(); return; }
-    var rest = sent, cost = 0;
-    fifo(gid, from).forEach(function(b){
-      if(rest <= 0.001) return;
-      var take = Math.min(rest, b.left); b.left -= take; rest -= take; cost += take*b.cost;
-      S.moves.push({t:stamp()+" 19.09", point:from, type:"Перемещение", good:gid, batch:b.id, qty:-take, who:point(from).manager, note:"в "+point(toP).name});
-    });
-    S.seqB++;
-    var exp = new Date(TODAY.getTime() + g.shelf*86400000);
-    S.batches.push({id:"П-"+S.seqB, point:toP, good:gid, in:got, left:got, cost: got ? Math.round(cost/got) : 0,
-      supplier:"перемещение с "+point(from).name, inv:"пер-"+S.seqB, date:"19.09",
-      exp:("0"+exp.getDate()).slice(-2)+"."+("0"+(exp.getMonth()+1)).slice(-2)});
-    S.moves.push({t:stamp()+" 19.09", point:toP, type:"Приёмка", good:gid, batch:"П-"+S.seqB, qty:got, who:point(toP).manager, note:"перемещение"});
-    if(got < sent - 0.005) agentSay("Перемещение: отправлено "+kg(sent,g.unit)+", принято "+kg(got,g.unit)+". Недостача "+kg(sent-got,g.unit)+" висит на «"+point(toP).name+"», ответственный "+point(toP).manager+".", "alert", "Перемещение");
-    else agentSay("Перемещение проведено: "+kg(got,g.unit)+" ушло на «"+point(toP).name+"» без расхождений.", "good", "Перемещение");
-    render();
-  });
-}
-
 /* ============ ВИД: архитектура ============ */
 function viewArch(){
   var map = [
@@ -1535,7 +1462,6 @@ function viewArch(){
     ["Рассылка акций","Сегменты из истории заказов, текст под то, что надо продать сегодня","Рассылки"],
     ["Обработка лидов","Каждый входящий – карточка в воронке, отвалившиеся в отдельный сценарий","Заказы и лиды"],
     ["Работа 24/7 от порога","Ночью принимаются заказы от 30 000 ₸, мелкие переносятся на утро","Обзор, Витрина"],
-    ["Франшизы и свои точки","Отдельные остатки, права и отчёты, перемещение документом","Точки и франшизы"],
     ["База клиентов и адресов","Карточка с первого сообщения, адреса сохраняются сами","Клиенты"],
     ["AmoCRM","Подключена, сделки не создаются – диагностика и решение","Интеграции"]
   ];
@@ -1558,7 +1484,7 @@ function viewArch(){
     '<div class="layer"><span class="tag">3 · Ядро и данные</span><div class="boxes">'+
       '<div class="box" data-go="orders"><b>Сценарии</b><span>n8n или Make</span></div>'+
       '<div class="box" data-go="warehouse"><b>База</b><span>партии, движения, заказы, клиенты</span></div>'+
-      '<div class="box" data-go="points"><b>Роли</b><span>владелец, точка, франшиза</span></div></div></div>'+
+      '<div class="box" data-go="warehouse"><b>Роли</b><span>владелец, точка, франшиза</span></div></div></div>'+
     '<div class="arrow">↓</div>'+
     '<div class="layer"><span class="tag">4 · Персонал</span><div class="boxes">'+
       '<div class="box" data-go="orders"><b>Телеграм-бот</b><span>наличие, сборка, вес</span></div>'+
@@ -1600,7 +1526,21 @@ var QUESTIONS = [
   {g:"Работа с клиентом", q:"Нужны ли казахский и английский по факту?", w:"В демо три языка. Каждый язык – это ещё и карточки товаров, и шаблоны рассылок."},
   {g:"Работа с клиентом", q:"Сколько держать резерв до оплаты?", w:"В демо 30 минут. Короче – товар быстрее возвращается, длиннее – меньше отказов."},
   {g:"Системы", q:"AmoCRM чинить или отказаться?", w:"Сколько людей реально в ней работает. Если ноль – воронка внутри системы дешевле."},
-  {g:"Системы", q:"Какой номер WhatsApp станет рабочим для агента?", w:"Нужен бизнес-аккаунт. Личный номер к API не подключается."}
+  {g:"Системы", q:"Какой номер WhatsApp станет рабочим для агента?", w:"Нужен бизнес-аккаунт. Личный номер к API не подключается."},
+
+  {g:"1С и обмен", q:"Какая конфигурация 1С и где она стоит?", w:"Управление торговлей, Розница, УНФ или Бухгалтерия. Свой сервер или облачная аренда – от этого зависит, открыт ли доступ к базе."},
+  {g:"1С и обмен", q:"Есть ли свой специалист по 1С?", w:"Он открывает обмен и правит документы на своей стороне. Без него проект не едет."},
+  {g:"1С и обмен", q:"Ведутся ли партии по весовому товару или себестоимость средняя?", w:"Без партий маржу по конкретной поставке посчитать нельзя. Это изменение в их учёте, а не в коде."},
+  {g:"1С и обмен", q:"Как часто проводят документы – сразу или раз в неделю?", w:"Если раз в неделю, любые остатки онлайн будут враньём. Сначала процесс, потом система."},
+  {g:"1С и обмен", q:"Дадут ли копию базы и доступ для обмена?", w:"Нужна тестовая копия, учётка с правами и канал до базы – белый IP или VPN."},
+  {g:"1С и обмен", q:"Где хранить данные клиентов?", w:"В Казахстане есть требования к хранению персональных данных. Вопрос к юристу до выбора хостинга."},
+
+  {g:"Документы склада", q:"Как сейчас заводят приходную накладную?", w:"Руками, фотографией накладной или выгрузкой из 1С. От этого зависит скорость приёмки."},
+  {g:"Документы склада", q:"Делают ли акт расхождения при недовесе?", w:"Вес по накладной и по своим весам почти никогда не совпадает. Если акта нет, недовес оплачивается молча."},
+  {g:"Документы склада", q:"Есть ли разделка с несколькими выходами?", w:"Филе, брюшки, головы из одной рыбы. Себестоимость распределяется по ценам продажи, а не поровну по килограммам."},
+  {g:"Документы склада", q:"Какие причины списания бывают и кто подписывает?", w:"Порча, усушка, бой, просрочка. Без причины и ответственного потери становятся безликими."},
+  {g:"Документы склада", q:"Уценивают товар с истекающим сроком или списывают?", w:"Уценка меняет цену, а не остаток. Чаще выгоднее продать дешевле, чем выбросить."},
+  {g:"Документы склада", q:"Кто и как часто делает инвентаризацию?", w:"Без пересчёта все цифры выше – теория. Нужен график и ответственный за смену."}
 ];
 function viewQuest(){
   var groups = [];
@@ -1686,7 +1626,6 @@ var VIEWS = {
   warehouse:[viewWarehouse, bindWarehouse],
   clients:[viewClients, bindClients],
   marketing:[viewMarketing, bindMarketing],
-  points:[viewPoints, bindPoints],
   arch:[viewArch, function(){}],
   quest:[viewQuest, bindQuest],
   integr:[viewIntegr, bindIntegr]
